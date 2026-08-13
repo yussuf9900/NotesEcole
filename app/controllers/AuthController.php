@@ -1,42 +1,63 @@
 <?php
 
+require_once dirname(__DIR__) . '/core/Session.php';
 require_once dirname(__DIR__) . '/models/UtilisateurModel.php';
 
-function login(): void {
-    init_session();
-    
-    if (is_logged_in() && $_SERVER['REQUEST_METHOD'] === 'GET') {
-        header('Location: /gestion');
-        exit;
+class AuthController {
+    private UtilisateurModel $utilisateurModel;
+
+    public function __construct() {
+        $this->utilisateurModel = new UtilisateurModel();
     }
 
-    $error = null;
+    public function login(): void {
+        Session::start();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
+        if (Session::isLoggedIn() && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+            $this->redirect('/gestion');
+        }
 
-        if (!empty($email) && !empty($password)) {
-            $pdo = connexionDB();
-            $user = verify_user_credentials($pdo, $email, $password);
-            if ($user) {
-                set_session('user', $user);
-                header('Location: /gestion');
-                exit;
+        $error = null;
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (!empty($email) && !empty($password)) {
+                $user = $this->utilisateurModel->verifyCredentials($email, $password);
+                if ($user) {
+                    Session::set('user', $user);
+                    $this->redirect('/gestion');
+                } else {
+                    $error = "Email ou mot de passe incorrect.";
+                }
             } else {
-                $error = "Email ou mot de passe incorrect.";
+                $error = "Veuillez remplir tous les champs du formulaire.";
             }
+        }
+
+        $this->render('PageConnexion.html.php', [
+            'error' => $error
+        ]);
+    }
+
+    public function logout(): void {
+        Session::destroy();
+        $this->redirect('/login');
+    }
+
+    private function render(string $view, array $data = []): void {
+        extract($data);
+        $viewPath = dirname(__DIR__) . '/views/' . $view;
+        if (file_exists($viewPath)) {
+            require_once $viewPath;
         } else {
-            $error = "Veuillez remplir tous les champs du formulaire.";
+            die("Erreur : La vue '{$view}' est introuvable.");
         }
     }
 
-    require_once dirname(__DIR__) . '/views/PageConnexion.html.php';
-}
-
-function logout(): void {
-    init_session();
-    destroy_session();
-    header('Location: /login');
-    exit;
+    private function redirect(string $url): void {
+        header("Location: " . $url);
+        exit;
+    }
 }

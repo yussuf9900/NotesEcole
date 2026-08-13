@@ -1,113 +1,151 @@
 <?php
-require_once dirname(__DIR__) . '/models/AnneeModel.php';
+
+require_once dirname(__DIR__) . '/core/Session.php';
+require_once dirname(__DIR__) . '/models/AnneeScolaireModel.php';
 require_once dirname(__DIR__) . '/models/ClasseModel.php';
-require_once dirname(__DIR__) . '/models/MatiereModel.php';
+require_once dirname(__DIR__) . '/models/MatiereClasseModel.php';
 require_once dirname(__DIR__) . '/models/PeriodeModel.php';
-require_once dirname(__DIR__) . '/models/NoteModel.php';
+require_once dirname(__DIR__) . '/models/EvaluationModel.php';
 
-function indexNote(): void {
-    require_login();
-    $pdo = connexionDB();
+class NoteController {
+    private AnneeScolaireModel $anneeModel;
+    private ClasseModel $classeModel;
+    private MatiereClasseModel $matiereClasseModel;
+    private PeriodeModel $periodeModel;
+    private EvaluationModel $evaluationModel;
 
-    $anneeActive = get_annee_active($pdo);
-    $classes = get_all_classes($pdo);
-    $periodes = get_all_periodes($pdo);
-
-    if (isset($_GET['classe_id']) && $_GET['classe_id'] !== '') {
-        $selectedClasseId = (int)$_GET['classe_id'];
-    } else {
-        $selectedClasseId = (int)get_session('selected_classe_id', $classes[0]['id'] ?? 1);
+    public function __construct() {
+        $this->anneeModel = new AnneeScolaireModel();
+        $this->classeModel = new ClasseModel();
+        $this->matiereClasseModel = new MatiereClasseModel();
+        $this->periodeModel = new PeriodeModel();
+        $this->evaluationModel = new EvaluationModel();
     }
 
-    $validClasseIds = array_column($classes, 'id');
-    if (!in_array($selectedClasseId, $validClasseIds, true) && !empty($validClasseIds)) {
-        $selectedClasseId = $validClasseIds[0];
-    }
-    set_session('selected_classe_id', $selectedClasseId);
+    public function index(): void {
+        Session::requireLogin();
 
-    $matieres = get_matieres_by_classe($pdo, $selectedClasseId);
-    $validMatiereIds = array_column($matieres, 'id');
+        $anneeActive = $this->anneeModel->getActive();
+        $classes = $this->classeModel->findAll();
+        $periodes = $this->periodeModel->findAll();
 
-    if (isset($_GET['matiere_id']) && $_GET['matiere_id'] !== '') {
-        $selectedMatiereId = (int)$_GET['matiere_id'];
-    } else {
-        $selectedMatiereId = (int)get_session('selected_matiere_id', 0);
-    }
-
-    if (!in_array($selectedMatiereId, $validMatiereIds, true) && !empty($validMatiereIds)) {
-        $selectedMatiereId = $validMatiereIds[0] ?? 1;
-    }
-    set_session('selected_matiere_id', $selectedMatiereId);
-
-    $validPeriodeIds = array_column($periodes, 'id');
-    if (isset($_GET['periode_id']) && $_GET['periode_id'] !== '') {
-        $selectedPeriodeId = (int)$_GET['periode_id'];
-    } else {
-        $selectedPeriodeId = (int)get_session('selected_periode_id', $periodes[0]['id'] ?? 1);
-    }
-
-    if (!in_array($selectedPeriodeId, $validPeriodeIds, true) && !empty($validPeriodeIds)) {
-        $selectedPeriodeId = $validPeriodeIds[0];
-    }
-    set_session('selected_periode_id', $selectedPeriodeId);
-
-    $anneeId = $anneeActive['id'] ?? 1;
-    $elevesNotes = get_eleves_notes($pdo, $anneeId, $selectedClasseId, $selectedMatiereId, $selectedPeriodeId);
-
-    $moyenneClasseMatiere = getMoyenneGeneral($pdo, $anneeId, $selectedClasseId, $selectedPeriodeId, $selectedMatiereId);
-    $moyenneGeneraleClasse = getMoyenneGeneral($pdo, $anneeId, $selectedClasseId, $selectedPeriodeId);
-
-    $currentUser = get_session('user');
-    $flashMessage = get_flash();
-
-    require_once dirname(__DIR__) . '/views/PageGestionNote.html.php';
-}
-
-function enregistrerNote(): void {
-    require_login();
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $classeId = isset($_POST['classe_id']) ? (int)$_POST['classe_id'] : (int)get_session('selected_classe_id', 1);
-        $matiereId = isset($_POST['matiere_id']) ? (int)$_POST['matiere_id'] : (int)get_session('selected_matiere_id', 1);
-        $periodeId = isset($_POST['periode_id']) ? (int)$_POST['periode_id'] : (int)get_session('selected_periode_id', 1);
-
-        set_session('selected_classe_id', $classeId);
-        set_session('selected_matiere_id', $matiereId);
-        set_session('selected_periode_id', $periodeId);
-
-        $rawNotes = $_POST['notes'] ?? [];
-        $notesToSave = [];
-
-        foreach ($rawNotes as $inscriptionId => $n) {
-            $d1 = (isset($n['devoir1']) && trim((string)$n['devoir1']) !== '') ? (float)$n['devoir1'] : 0.0;
-            $d2 = (isset($n['devoir2']) && trim((string)$n['devoir2']) !== '') ? (float)$n['devoir2'] : 0.0;
-            $comp = (isset($n['composition']) && trim((string)$n['composition']) !== '') ? (float)$n['composition'] : 0.0;
-
-            $notesToSave[] = [
-                'inscription_id' => (int)$inscriptionId,
-                'devoir1' => $d1,
-                'devoir2' => $d2,
-                'composition' => $comp
-            ];
-        }
-
-        $pdo = connexionDB();
-        $success = sauvegarder_notes($pdo, $matiereId, $periodeId, $notesToSave);
-
-        if ($success) {
-            set_flash('success', 'Les notes ont été enregistrées avec succès en base de données.');
+        if (isset($_GET['classe_id']) && $_GET['classe_id'] !== '') {
+            $selectedClasseId = (int)$_GET['classe_id'];
         } else {
-            set_flash('error', 'Une erreur est survenue lors de l\'enregistrement des notes.');
+            $selectedClasseId = (int)Session::get('selected_classe_id', $classes[0]['id'] ?? 1);
         }
 
-        header("Location: /gestion?classe_id={$classeId}&matiere_id={$matiereId}&periode_id={$periodeId}");
+        $validClasseIds = array_column($classes, 'id');
+        if (!in_array($selectedClasseId, $validClasseIds, true) && !empty($validClasseIds)) {
+            $selectedClasseId = $validClasseIds[0];
+        }
+        Session::set('selected_classe_id', $selectedClasseId);
+
+        $matieres = $this->matiereClasseModel->getMatieresByClasseId($selectedClasseId);
+        $validMatiereIds = array_column($matieres, 'id');
+
+        if (isset($_GET['matiere_id']) && $_GET['matiere_id'] !== '') {
+            $selectedMatiereId = (int)$_GET['matiere_id'];
+        } else {
+            $selectedMatiereId = (int)Session::get('selected_matiere_id', $validMatiereIds[0] ?? 1);
+        }
+
+        if (!in_array($selectedMatiereId, $validMatiereIds, true) && !empty($validMatiereIds)) {
+            $selectedMatiereId = $validMatiereIds[0] ?? 1;
+        }
+        Session::set('selected_matiere_id', $selectedMatiereId);
+
+        $validPeriodeIds = array_column($periodes, 'id');
+        if (isset($_GET['periode_id']) && $_GET['periode_id'] !== '') {
+            $selectedPeriodeId = (int)$_GET['periode_id'];
+        } else {
+            $selectedPeriodeId = (int)Session::get('selected_periode_id', $periodes[0]['id'] ?? 1);
+        }
+
+        if (!in_array($selectedPeriodeId, $validPeriodeIds, true) && !empty($validPeriodeIds)) {
+            $selectedPeriodeId = $validPeriodeIds[0];
+        }
+        Session::set('selected_periode_id', $selectedPeriodeId);
+
+        $anneeId = $anneeActive['id'] ?? 1;
+        $elevesNotes = $this->evaluationModel->getElevesNotes($anneeId, $selectedClasseId, $selectedMatiereId, $selectedPeriodeId);
+
+        $moyenneClasseMatiere = $this->evaluationModel->getMoyenneGeneral($anneeId, $selectedClasseId, $selectedPeriodeId, $selectedMatiereId);
+        $moyenneGeneraleClasse = $this->evaluationModel->getMoyenneGeneral($anneeId, $selectedClasseId, $selectedPeriodeId);
+
+        $currentUser = Session::get('user');
+        $flashMessage = Session::getFlash();
+
+        $this->render('PageGestionNote.html.php', [
+            'anneeActive' => $anneeActive,
+            'classes' => $classes,
+            'periodes' => $periodes,
+            'matieres' => $matieres,
+            'selectedClasseId' => $selectedClasseId,
+            'selectedMatiereId' => $selectedMatiereId,
+            'selectedPeriodeId' => $selectedPeriodeId,
+            'elevesNotes' => $elevesNotes,
+            'moyenneClasseMatiere' => $moyenneClasseMatiere,
+            'moyenneGeneraleClasse' => $moyenneGeneraleClasse,
+            'currentUser' => $currentUser,
+            'flashMessage' => $flashMessage
+        ]);
+    }
+
+    public function save(): void {
+        Session::requireLogin();
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $classeId = isset($_POST['classe_id']) ? (int)$_POST['classe_id'] : (int)Session::get('selected_classe_id', 1);
+            $matiereId = isset($_POST['matiere_id']) ? (int)$_POST['matiere_id'] : (int)Session::get('selected_matiere_id', 1);
+            $periodeId = isset($_POST['periode_id']) ? (int)$_POST['periode_id'] : (int)Session::get('selected_periode_id', 1);
+
+            Session::set('selected_classe_id', $classeId);
+            Session::set('selected_matiere_id', $matiereId);
+            Session::set('selected_periode_id', $periodeId);
+
+            $rawNotes = $_POST['notes'] ?? [];
+            $notesToSave = [];
+
+            foreach ($rawNotes as $inscriptionId => $n) {
+                $d1 = (isset($n['devoir1']) && trim((string)$n['devoir1']) !== '') ? (float)$n['devoir1'] : 0.0;
+                $d2 = (isset($n['devoir2']) && trim((string)$n['devoir2']) !== '') ? (float)$n['devoir2'] : 0.0;
+                $comp = (isset($n['composition']) && trim((string)$n['composition']) !== '') ? (float)$n['composition'] : 0.0;
+
+                $notesToSave[] = [
+                    'inscription_id' => (int)$inscriptionId,
+                    'devoir1' => $d1,
+                    'devoir2' => $d2,
+                    'composition' => $comp
+                ];
+            }
+
+            $success = $this->evaluationModel->saveNotes($matiereId, $periodeId, $notesToSave);
+
+            if ($success) {
+                Session::setFlash('success', 'Les notes ont été enregistrées avec succès en base de données.');
+            } else {
+                Session::setFlash('error', 'Une erreur est survenue lors de l\'enregistrement des notes.');
+            }
+
+            $this->redirect("/gestion?classe_id={$classeId}&matiere_id={$matiereId}&periode_id={$periodeId}");
+        }
+
+        $this->redirect('/gestion');
+    }
+
+    private function render(string $view, array $data = []): void {
+        extract($data);
+        $viewPath = dirname(__DIR__) . '/views/' . $view;
+        if (file_exists($viewPath)) {
+            require_once $viewPath;
+        } else {
+            die("Erreur : La vue '{$view}' est introuvable.");
+        }
+    }
+
+    private function redirect(string $url): void {
+        header("Location: " . $url);
         exit;
     }
-
-    header('Location: /gestion');
-    exit;
 }
-
-
-
-

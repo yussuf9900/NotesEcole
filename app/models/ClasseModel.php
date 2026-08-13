@@ -2,13 +2,23 @@
 
 require_once dirname(__DIR__) . '/core/Database.php';
 
-function get_all_classes(PDO $pdo): array {
-    $sql = "SELECT * FROM classes ORDER BY id ASC";
-    return query($pdo, $sql);
-}
+class ClasseModel {
+    private Database $db;
+    private PDO $pdo;
 
-function get_classe_by_id(PDO $pdo, int $id): ?array {
-    $sql = "SELECT * FROM classes WHERE id = :id";
-    $result = executeQuery($pdo, $sql, ['id' => $id], true);
-    return !empty($result) ? $result : null;
+    public function __construct() {
+        $this->db = Database::getInstance();
+        $this->pdo = $this->db->getConnection();
+    }
+
+    public function findAll(): array {
+        $sql = "SELECT * FROM classes ORDER BY id ASC";
+        return $this->db->query($sql);
+    }
+
+    public function findById(int $id): ?array {
+        $sql = "SELECT * FROM classes WHERE id = :id";
+        $result = $this->db->executeQuery($sql, ['id' => $id], true);
+        return !empty($result) ? $result : null;
+    }
 }
