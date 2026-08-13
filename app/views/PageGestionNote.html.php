@@ -364,8 +364,8 @@
                 $d1 = (float)($item['devoir1'] ?? 0);
                 $d2 = (float)($item['devoir2'] ?? 0);
                 $comp = (float)($item['composition'] ?? 0);
-                $moy = calculer_moyenne_eleve($d1, $d2, $comp);
-                $app = get_appreciation_note($moy);
+                $moy = EvaluationModel::calculerMoyenneEleve($d1, $d2, $comp);
+                $app = EvaluationModel::getAppreciationNote($moy);
                 $inscId = $item['inscription_id'];
                 $fullName = trim(($item['prenom'] ?? '') . ' ' . ($item['nom'] ?? ''));
                 $initials = strtoupper(substr($item['prenom'] ?? '', 0, 1) . substr($item['nom'] ?? '', 0, 1));

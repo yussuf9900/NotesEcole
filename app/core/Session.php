@@ -1,0 +1,57 @@
+<?php
+
+class Session {
+    public static function start(): void {
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            session_start();
+        }
+    }
+
+    public static function set(string $key, mixed $value): void {
+        self::start();
+        $_SESSION[$key] = $value;
+    }
+
+    public static function get(string $key, mixed $default = null): mixed {
+        self::start();
+        return $_SESSION[$key] ?? $default;
+    }
+
+    public static function has(string $key): bool {
+        self::start();
+        return isset($_SESSION[$key]);
+    }
+
+    public static function remove(string $key): void {
+        self::start();
+        unset($_SESSION[$key]);
+    }
+
+    public static function destroy(): void {
+        self::start();
+        session_unset();
+        session_destroy();
+    }
+
+    public static function isLoggedIn(): bool {
+        self::start();
+        return self::get('user') !== null;
+    }
+
+    public static function requireLogin(): void {
+        if (!self::isLoggedIn()) {
+            header('Location: /login');
+            exit;
+        }
+    }
+
+    public static function setFlash(string $type, string $message): void {
+        self::set('flash_message', ['type' => $type, 'text' => $message]);
+    }
+
+    public static function getFlash(): ?array {
+        $flash = self::get('flash_message');
+        self::remove('flash_message');
+        return $flash;
+    }
+}

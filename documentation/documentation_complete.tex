@@ -1,0 +1,1741 @@
+% ==============================================================================
+% DOCUMENTATION TECHNIQUE COMPLÈTE EN UN SEUL FICHIER LATEX (20+ PAGES)
+% Titre: Migration Architecturale : Du Paradigme Procédural vers la POO & MVC
+% Projet: NotesEcole - Gestion Scolaire & Saisie des Notes
+% Auteur: Équipe d'Ingénierie & Développement Web
+% Date: Février 2026
+% ==============================================================================
+
+\documentclass[11pt,a4paper,oneside]{report}
+
+% ------------------------------------------------------------------------------
+% 1. PACKAGES & CONFIGURATION SYSTÈME
+% ------------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit,backgrounds,decorations.pathreplacing,shadows}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{hyperref}
+
+% ------------------------------------------------------------------------------
+% 2. GÉOMÉTRIE & TYPOGRAPHIE
+% ------------------------------------------------------------------------------
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm,
+    headheight=14pt,
+    footskip=1.5cm
+}
+
+\onehalfspacing % Interligne 1.5 pour une lisibilité optimale
+
+% Palette de Couleurs Institutionnelle
+\definecolor{primaryDark}{HTML}{153B28}   % Vert institutionnel sombre
+\definecolor{primaryMed}{HTML}{20503A}    % Vert principal
+\definecolor{primaryLight}{HTML}{E8F2EC}  % Fond vert très clair
+\definecolor{accentGold}{HTML}{C59B27}   % Or / Ocre
+\definecolor{darkText}{HTML}{1A202C}     % Texte gris foncé moderne
+\definecolor{lightGray}{HTML}{F8F9FA}    % Gris très clair
+\definecolor{borderGray}{HTML}{E2E8F0}   % Bordure
+\definecolor{codeBackground}{HTML}{F7FAFC}% Fond des listings
+\definecolor{codeKeyword}{HTML}{891B4C}  % Mots-clés PHP/SQL
+\definecolor{codeString}{HTML}{2E7D32}   % Chaînes de caractères
+\definecolor{codeComment}{HTML}{718096}  % Commentaires
+\definecolor{diffAdd}{HTML}{E6FFED}      % Diff Vert
+\definecolor{diffDel}{HTML}{FFEBE9}      % Diff Rouge
+\definecolor{diffAddBorder}{HTML}{34D058}
+\definecolor{diffDelBorder}{HTML}{D73A49}
+
+% Configuration de Hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryMed,
+    citecolor=primaryMed,
+    urlcolor=accentGold,
+    pdftitle={Documentation Technique - Refactorisation Procédurale vers POO & MVC},
+    pdfauthor={Équipe d'Ingénierie Logicielle NotesEcole},
+    pdfsubject={Refactorisation PHP & PostgreSQL - Architecture MVC & POO},
+    pdfkeywords={PHP, POO, MVC, Procédural, Refactorisation, PostgreSQL, Architecture Logicielle, Design Patterns},
+    pdfpagemode=UseOutlines,
+    bookmarksopen=true
+}
+
+% En-têtes et Pieds de page (fancyhdr)
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{primaryMed}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{borderGray}\leaders\hrule height \footrulewidth\hfill}}
+
+\fancyhead[L]{\small\color{primaryMed}\bfseries \nouppercase{\leftmark}}
+\fancyhead[R]{\small\color{gray}Projet NotesEcole - POO \& MVC}
+\fancyfoot[L]{\small\color{gray}\textit{Documentation d'Architecture \& Migration}}
+\fancyfoot[R]{\small\color{primaryMed}\bfseries Page \thepage}
+
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.4pt}
+    \fancyfoot[L]{\small\color{gray}\textit{Documentation d'Architecture \& Migration}}
+    \fancyfoot[R]{\small\color{primaryMed}\bfseries Page \thepage}
+}
+
+% Personnalisation des Titres (titlesec)
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{primaryDark}}
+{\flushright\small\color{accentGold}\MakeUppercase{\chaptertitlename} \fontsize{50}{60}\selectfont\color{primaryMed}\thechapter}
+{10pt}
+{\titlerule[2pt]\vspace{10pt}\raggedright}[\vspace{10pt}\titlerule]
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{primaryMed}}
+{\thesection}{1em}{}
+[\vspace{-2pt}\color{primaryLight}\rule{\linewidth}{1.5pt}]
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries\color{primaryDark}}
+{\thesubsection}{0.8em}{}
+
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries\color{accentGold}}
+{\thesubsubsection}{0.6em}{}
+
+% Boîtes d'Information et Alertes (tcolorbox)
+\newtcolorbox{infoBox}[1][Information]{
+    enhanced,
+    colback=primaryLight,
+    colframe=primaryMed,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1pt,
+    arc=4pt,
+    left=10pt, right=10pt, top=8pt, bottom=8pt,
+    shadow={2pt}{-2pt}{0pt}{black!10}
+}
+
+\newtcolorbox{warningBox}[1][Attention / Point Critique]{
+    enhanced,
+    colback=yellow!10!white,
+    colframe=accentGold!80!black,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1pt,
+    arc=4pt,
+    left=10pt, right=10pt, top=8pt, bottom=8pt,
+    shadow={2pt}{-2pt}{0pt}{black!10}
+}
+
+\newtcolorbox{conceptBox}[1][Concept Clé]{
+    enhanced,
+    colback=white,
+    colframe=primaryDark,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1.2pt,
+    arc=3pt,
+    left=10pt, right=10pt, top=8pt, bottom=8pt
+}
+
+\newtcolorbox{diffBoxPlus}[1][Ajout POO / Amélioration]{
+    enhanced,
+    colback=diffAdd,
+    colframe=diffAddBorder,
+    coltitle=black,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1pt,
+    arc=3pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{diffBoxMinus}[1][Suppression / Limite Procédurale]{
+    enhanced,
+    colback=diffDel,
+    colframe=diffDelBorder,
+    coltitle=black,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1pt,
+    arc=3pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Configuration des Listings de Code
+\lstset{
+    basicstyle=\ttfamily\footnotesize\color{darkText},
+    backgroundcolor=\color{codeBackground},
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    rulecolor=\color{borderGray},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    keywordstyle=\color{codeKeyword}\bfseries,
+    commentstyle=\color{codeComment}\itshape,
+    stringstyle=\color{codeString},
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    xleftmargin=15pt,
+    framexleftmargin=15pt,
+    literate=
+        {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+        {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+        {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+        {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+        {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+        {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+        {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+        {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+        {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1 {œ}{{\oe}}1 {Œ}{{\OE}}1
+}
+
+\lstdefinelanguage{PHP8}{
+    language=PHP,
+    morekeywords={
+        readonly, match, fn, mixed, never, void,
+        enum, pure, string, int, float, bool, array,
+        object, iterable, callable, self, parent, static,
+        declare, strict_types
+    }
+}
+
+% ==============================================================================
+% DÉBUT DU DOCUMENT
+% ==============================================================================
+\begin{document}
+
+% ------------------------------------------------------------------------------
+% PAGE DE GARDE
+% ------------------------------------------------------------------------------
+\pagenumbering{roman}
+
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture,overlay]
+        \fill[primaryDark] (current page.north west) rectangle ([xshift=1.2cm]current page.south west);
+        \fill[accentGold] ([xshift=1.2cm]current page.north west) rectangle ([xshift=1.45cm]current page.south west);
+    \end{tikzpicture}
+
+    \vspace{-1.5cm}
+    \begin{flushright}
+        {\Large \textbf{\color{primaryDark}RAPPORT TECHNIQUE D'INGÉNIERIE LOGICIELLE}}\\[0.3cm]
+        {\small \color{gray} REFACTORISATION D'ARCHITECTURE \& MODERNISATION DU CODE}
+        \vspace{1.5cm}
+    \end{flushright}
+
+    \vspace{2cm}
+
+    \begin{center}
+        {\Huge \bfseries \color{primaryDark} MIGRATION ARCHITECTURALE}\\[0.5cm]
+        {\LARGE \bfseries \color{primaryMed} Du Paradigme Procédural vers la Programmation Orientée Objet (POO \& MVC)}\\[0.8cm]
+        
+        \rule{0.6\linewidth}{2pt}\\[0.8cm]
+
+        {\large \bfseries \color{darkText} Étude de Cas Approfondie, Conception des Modèles DAO, Patron Singleton, Routage Dynamique et Gestion Atomique des Notes Scolaires}\\[0.4cm]
+        {\large \textit{\color{primaryMed} Projet NotesEcole}}
+    \end{center}
+
+    \vfill
+
+    \begin{minipage}{0.48\textwidth}
+        \begin{flushleft} \large
+            \textbf{\color{primaryDark}Auteur :}\\
+            Équipe de Développement\\
+            \textit{Département Ingénierie Web}
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \begin{flushright} \large
+            \textbf{\color{primaryDark}Technologies Clés :}\\
+            PHP 8.2+ \textbar\ PostgreSQL 16\\
+            MVC \textbar\ POO \textbar\ PDO \textbar\ Git
+        \end{flushright}
+    \end{minipage}
+
+    \vspace{1.5cm}
+
+    \begin{center}
+        \small \color{gray}
+        Session Académique \& Professionnelle -- Février 2026\\
+        Dépôt de Code : \texttt{NotesEcole} (Branches \texttt{main} \& \texttt{POO})
+    \end{center}
+\end{titlepage}
+
+% ------------------------------------------------------------------------------
+% RÉSUMÉ & ABSTRACT
+% ------------------------------------------------------------------------------
+\chapter*{Résumé Exécutif}
+\addcontentsline{toc}{chapter}{Résumé Exécutif}
+
+Le présent document constitue un rapport d'ingénierie logicielle exhaustif retraçant l'ensemble du cycle de refactorisation mené sur la plateforme web de gestion scolaire \textbf{NotesEcole}. Initialement développé selon une approche exclusivement \textbf{procédurale} sur la branche principale (\texttt{main}), le projet présentait des limitations structurelles inhérentes à ce paradigme : prolifération de fonctions globales, couplage fort avec l'instance de connexion à la base de données PostgreSQL via l'injection manuelle répétitive de la variable \texttt{\$pdo}, dispersion de la logique métier et vulnérabilités organisationnelles face à la montée en charge.
+
+Ce mémoire documente la transition intégrale du système vers le paradigme de la \textbf{Programmation Orientée Objet (POO)} articulé autour de l'architecture \textbf{Modèle-Vue-Contrôleur (MVC)} sur la branche dédiée \texttt{POO}. Nous analysons les fondements théoriques de cette refonte (principes SOLID, découplage, cohésion forte, encapsulation), la mise en place de patrons de conception éprouvés (\textit{Singleton} pour le gestionnaire de base de données, \textit{Data Access Object / Repository} pour les 10 entités scolaires, \textit{Front Controller} et \textit{Router} dynamique orienté verbes HTTP), ainsi que la sécurisation transactionnelle des enregistrements de notes scolaires en masse (ACID).
+
+\vspace{0.8cm}
+
+\noindent \textbf{Mots-clés :} Programmation Orientée Objet, Refactorisation, PHP 8, PostgreSQL, Patron MVC, Singleton, DAO, Routage HTTP, Transactions ACID, Notes Scolaires.
+
+\vspace{1.5cm}
+
+\begin{otherlanguage}{english}
+\chapter*{Executive Abstract}
+\addcontentsline{toc}{chapter}{Executive Abstract}
+
+This technical engineering report provides an in-depth account of the architectural refactoring performed on the \textbf{NotesEcole} school grading management platform. Initially conceived following a purely \textbf{procedural} paradigm on the \texttt{main} branch, the system suffered from systemic technical debt: global scope namespace pollution, severe coupling caused by passing the PDO database handle across every functional layer, lack of state encapsulation, and poor testability.
+
+This document details the step-by-step migration to a modern \textbf{Object-Oriented Programming (OOP)} architecture grounded in the \textbf{Model-View-Controller (MVC)} design pattern on the \texttt{POO} branch. We demonstrate how software engineering principles (SOLID, high cohesion, low coupling) guided the implementation of key architectural design patterns: a thread-safe PDO \textit{Singleton} with transaction management, an extensible HTTP \textit{Router} and \textit{Front Controller}, static Session management with transient flash messages, and 10 dedicated \textit{Data Access Object (DAO)} models mirroring the PostgreSQL relational schema. Furthermore, performance optimizations and atomic multi-row grade submissions are formally verified.
+
+\vspace{0.8cm}
+
+\noindent \textbf{Keywords:} Object-Oriented Programming, Refactoring, PHP 8, PostgreSQL, MVC Pattern, Singleton, DAO, Dynamic Routing, ACID Transactions, Academic Grading System.
+\end{otherlanguage}
+
+% ------------------------------------------------------------------------------
+% REMERCIEMENTS & TABLES AUTOMATIQUES
+% ------------------------------------------------------------------------------
+\chapter*{Avant-propos \& Remerciements}
+\addcontentsline{toc}{chapter}{Avant-propos \& Remerciements}
+
+Ce travail de refactorisation logicielle s'inscrit dans une volonté continue d'excellence technique, de conformité aux standards contemporains du développement Web (PHP FIG, PSR, programmation défensive) et de pérennisation des applications de gestion des données critiques.
+
+Nous tenons à exprimer notre profonde gratitude envers l'ensemble des encadrants techniques, des relecteurs de code et des parties prenantes pédagogiques ayant contribué à la définition rigoureuse des règles de calcul des moyennes scolaires pondérées et des contraintes d'intégrité de la base de données.
+
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+\lstlistoflistings
+\newpage
+
+% ------------------------------------------------------------------------------
+% CORPS DU DOCUMENT
+% ------------------------------------------------------------------------------
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ==============================================================================
+% CHAPITRE 1 : INTRODUCTION & CONTEXTE DU PROJET
+% ==============================================================================
+\chapter{Introduction \& Contexte du Projet}
+\label{chap:introduction}
+
+\section{Mise en Contexte et Présentation du Projet NotesEcole}
+
+Dans le contexte de la transformation numérique des établissements scolaires, la gestion rigoureuse, transparente et automatisée des évaluations pédagogiques représente un enjeu capital pour le corps professoral et les directions d'études. Le projet \textbf{NotesEcole} est une application web conçue pour centraliser, administrer et automatiser la saisie des évaluations périodiques ainsi que le calcul instantané des moyennes pondérées des élèves.
+
+L'application s'adresse à différents profils d'utilisateurs institutionnels :
+\begin{enumerate}
+    \item \textbf{La Direction de l'Établissement :} supervise l'ensemble des structures académiques, valide les années scolaires actives, consulte les statistiques globales de performance des classes et assure la gouvernance pédagogique.
+    \item \textbf{Le Corps Enseignant (Professeurs) :} renseigne périodiquement les notes des élèves inscrits dans leurs classes respectives pour leurs matières d'attribution (Devoir 1, Devoir 2, Composition de fin de trimestre).
+    \item \textbf{Les Surveillants et Personnels Administratifs :} gèrent les inscriptions annuelles des élèves, l'affectation aux cohortes de classes et l'intégrité des listes d'élèves.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=1.8cm, auto,
+        block/.style={rectangle, draw=primaryMed, fill=primaryLight, rounded corners, text width=3.5cm, align=center, minimum height=1.2cm, font=\small\bfseries},
+        user/.style={ellipse, draw=accentGold, fill=accentGold!15, text width=2.8cm, align=center, minimum height=1.2cm, font=\small\bfseries},
+        line/.style={draw=primaryDark, -stealth', thick}]
+        
+        \node [user] (dir) {Direction};
+        \node [user, below of=dir] (prof) {Professeur};
+        \node [user, below of=prof] (surv) {Surveillant};
+        
+        \node [block, right=3.5cm of dir] (auth) {Authentification \& Contrôle d'Accès};
+        \node [block, right=3.5cm of prof] (gestion) {Saisie \& Calcul des Notes};
+        \node [block, right=3.5cm of surv] (inscr) {Affectations \& Inscriptions};
+        
+        \node [block, right=2.8cm of gestion, fill=primaryDark, text=white] (db) {Base PostgreSQL\\(Relational Schema)};
+
+        \path [line] (dir) -- (auth);
+        \path [line] (prof) -- (gestion);
+        \path [line] (surv) -- (inscr);
+        \path [line] (auth) -- (gestion);
+        \path [line] (gestion) -- (db);
+        \path [line] (inscr) -- (db);
+    \end{tikzpicture}
+    \caption{Schéma conceptuel des flux et acteurs du système NotesEcole}
+    \label{fig:acteurs_flux}
+\end{figure}
+
+\section{Le Périmètre Fonctionnel et les Règles Métier Scolaires}
+
+Le système repose sur un ensemble précis de règles de gestion et d'exigences pédagogiques formalisées :
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Structure Temporelle et Année Active :} Le système opère sur une année scolaire active unique à un instant donné (ex. 2025-2026), subdivisée en périodes d'évaluation normalisées (Trimestre 1, Trimestre 2, Trimestre 3).
+    \item \textbf{Inscriptions et Cohortes :} Un élève est rattaché à une classe (ex. \textit{3ème A}, \textit{4ème B}) pour une année scolaire donnée via une table de jointure explicite \texttt{inscriptions}.
+    \item \textbf{Curriculum par Classe :} Chaque classe dispose d'un panier de matières obligatoires (Mathématiques, Français, Histoire-Géographie, Sciences Physiques) associées via la table \texttt{matiere\_classes}.
+    \item \textbf{Formule Pédagogique de Calcul de la Moyenne par Matière :} La note finale trimestrielle dans une matière $M$ pour un élève $E$ obéit à la règle de pondération standard où la composition semestrielle/trimestrielle possède un coefficient double par rapport aux devoirs continus :
+    \begin{equation}
+        \text{Moyenne}_{\text{matière}} = \frac{\text{Devoir}_1 + \text{Devoir}_2 + (2 \times \text{Composition})}{4}
+        \label{eq:formule_moyenne}
+    \end{equation}
+    \item \textbf{Gestion des Moyennes Globales et Exclusion des Vides :} Lors du calcul de la moyenne générale d'une classe ou d'une matière, les élèves n'ayant composé à aucune épreuve ou présentant une moyenne calculée strictement égale à zéro sont filtrés afin de ne pas fausser statistiquement les performances réelles de la classe.
+\end{itemize}
+
+\section{Problématique : Les Limites de l'Approche Procédurale Initiale}
+
+À sa création sur la branche \texttt{main}, le projet a été implémenté en utilisant un style procédural traditionnel en PHP natif. Bien que cette approche ait permis d'obtenir rapidement un premier prototype fonctionnel (MVP), l'accroissement de la complexité a immédiatement mis en lumière des faiblesses architecturales majeures :
+
+\begin{enumerate}
+    \item \textbf{Couplage Excessif et Fardeau du Handle de Base de Données :} Chaque fonction de modèle (ex. \texttt{get\_eleves\_notes(\$pdo, ...)}, \texttt{sauvegarder\_notes(\$pdo, ...)}, \texttt{verify\_user\_credentials(\$pdo, ...)}) nécessitait la transmission explicite et redondante de l'objet \texttt{\$pdo}.
+    \item \textbf{Pollution du Scope Global et Risque de Conflit de Noms :} Les fonctions d'authentification (\texttt{login()}, \texttt{logout()}) et de gestion des notes (\texttt{indexNote()}, \texttt{enregistrerNote()}) résidaient dans l'espace de nommage global, empêchant toute encapsulation des états intermédiaires.
+    \item \textbf{Gestion de Session Désarticulée :} L'absence de structure unifiée pour les sessions entraînait des appels épars à \texttt{session\_start()} et des vérifications manuelles directes du tableau superglobal \texttt{\$\_SESSION}.
+    \item \textbf{Absence de Polymorphisme et Extensibilité Faible :} L'ajout d'une nouvelle entité nécessitait l'écriture d'une multitude de scripts procéduraux indépendants sans contrat d'interface ni uniformité dans la gestion des erreurs.
+\end{enumerate}
+
+\begin{warningBox}[Constat Technique Initial]
+Le code procédural initial, bien que modulaire en apparence via des découpages de fichiers, souffrait d'une forte dette technique. L'état de l'application n'était pas maîtrisé, et les dépendances n'étaient ni isolées ni injectées proprement, rendant les tests unitaires et la maintenance évolutive quasi impossibles.
+\end{warningBox}
+
+\section{Objectifs de la Refactorisation vers la POO}
+
+La refonte complète menée sur la branche \texttt{POO} s'est assignée des objectifs rigoureux de qualité logicielle :
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Encapsulation Stricte :} Regrouper la logique métier et l'accès aux données au sein d'objets cohérents dissimulant leurs détails d'implémentation internes.
+    \item \textbf{Adoption des Design Patterns Éprouvés :}
+    \begin{itemize}
+        \item \textit{Singleton Pattern} pour la classe \texttt{Database}, garantissant l'unicité de la connexion PDO et la gestion native des transactions.
+        \item \textit{DAO / Repository Pattern} pour les 10 modèles scolaires, instanciant ou exploitant la connexion sans passage explicite de paramètres.
+        \item \textit{Front Controller \& Dynamic Router} pour le dispatching des requêtes basé sur les verbes HTTP (GET / POST).
+    \end{itemize}
+    \item \textbf{Typage Strict et Sécurité PHP 8+ :} Typage fort des propriétés d'instance, des paramètres et des valeurs de retour (\texttt{int}, \texttt{float}, \texttt{array}, \texttt{?Database}, \texttt{void}).
+    \item \textbf{Sécurisation Transactionnelle des Écritures (ACID) :} Garantie d'atomicité totale lors de la sauvegarde simultanée des notes d'une classe complète.
+\end{itemize}
+
+% ==============================================================================
+% CHAPITRE 2 : FONDEMENTS THÉORIQUES & COMPARAISON DES PARADIGMES
+% ==============================================================================
+\chapter{Fondements Théoriques \& Comparaison des Paradigmes}
+\label{chap:paradigmes}
+
+\section{Le Paradigme Procédural : Principes, Avantages et Limites}
+
+Le paradigme procédural repose sur le concept d'appels de procédures ou de fonctions exécutant séquentiellement une suite d'instructions algorithmiques. Dans ce modèle, les structures de données (généralement des tableaux associatifs ou des variables scalaires en PHP natif) sont distinctes et découplées des fonctions chargées de les manipuler.
+
+\subsection{Caractéristiques Principales du Code Procédural}
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Flux Linéaire et Séquentiel :} L'exécution progresse pas à pas au travers d'un enchaînement de fonctions appelées de manière hiérarchique ou séquentielle.
+    \item \textbf{Données Passives :} Les données manipulées n'ont aucune conscience de leur propre état ni des invariants métier qui leur sont applicables. Une note d'évaluation transmise sous forme de tableau \texttt{['devoir1' => 15, 'devoir2' => 12]} ne possède aucune méthode intrinsèque de validation ou de calcul de moyenne.
+    \item \textbf{Passage Explicite des Ressources :} Les ressources partagées (telles que le descripteur de connexion à la base de données \texttt{\$pdo}) doivent être transmises en argument à chaque appel fonctionnel.
+\end{itemize}
+
+\subsection{Limitations Critiques Constatées dans un Projet Évolutif}
+Bien que le paradigme procédural offre une courbe d'apprentissage directe et une rapidité initiale pour l'écriture de scripts simples, il devient contre-productif dès lors que la base de code grandit :
+\begin{enumerate}
+    \item \textbf{Explosion du Couplage :} Toute modification de la signature d'une fonction de base (par exemple l'ajout d'un paramètre de configuration à la connexion DB) exige de modifier l'intégralité des fonctions appelantes dans toute l'arborescence.
+    \item \textbf{Effets de Bord Incontrôlés (*Side-Effects*) :} Les variables globales ou les modifications indirectes de tableaux par référence rendent difficile la prévisibilité de l'état du système à un instant $t$.
+    \item \textbf{Absence de Protection de l'État :} Il est impossible d'empêcher un script tiers de corrompre directement un tableau de données, aucune visibilité (\texttt{private}, \texttt{protected}) n'existant pour garantir l'intégrité de l'état interne.
+\end{enumerate}
+
+\section{Le Paradigme Orienté Objet (POO) : Les 4 Piliers Fondamentaux}
+
+La Programmation Orientée Objet structure les programmes sous la forme d'un ensemble d'\textbf{objets} autonomes et communicants, combinant au sein d'une même entité des \textbf{données} (attributs / propriétés) et des \textbf{traitements} (méthodes).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw=primaryDark, fill=white, rounded corners, minimum width=3.2cm, minimum height=2.2cm, align=center, thick},
+        title/.style={font=\bfseries\color{white}, fill=primaryMed, rounded corners=2pt, inner sep=4pt}
+    ]
+        \node[box] (encap) at (0,0) {
+            \vspace{-0.4cm}\\
+            \textbf{Encapsulation}\\
+            \small Protection de l'état\\
+            \small Visibilité private/public
+        };
+        \node[box] (abstr) at (4.5,0) {
+            \vspace{-0.4cm}\\
+            \textbf{Abstraction}\\
+            \small Masquage des détails\\
+            \small Interfaces claires
+        };
+        \node[box] (herit) at (9,0) {
+            \vspace{-0.4cm}\\
+            \textbf{Héritage}\\
+            \small Réutilisation de code\\
+            \small Hiérarchies logiques
+        };
+        \node[box] (polym) at (13.5,0) {
+            \vspace{-0.4cm}\\
+            \textbf{Polymorphisme}\\
+            \small Comportements variables\\
+            \small Contrats unifiés
+        };
+
+        \node[fit=(encap)(abstr)(herit)(polym), draw=accentGold, dashed, rounded corners, inner sep=12pt, label=above:{\textbf{\color{primaryDark}Les 4 Piliers de la Programmation Orientée Objet}}] {};
+    \end{tikzpicture}
+    \caption{Les quatre piliers conceptuels de la Programmation Orientée Objet}
+    \label{fig:piliers_poo}
+\end{figure}
+
+\subsection{Application des Piliers au Projet NotesEcole}
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Encapsulation :} La classe \texttt{Database} encapsule l'objet interne \texttt{PDO \$pdo} et le conserve en \texttt{private}. Aucun contrôleur ni modèle n'a accès direct au driver brut, passant exclusivement par des méthodes normalisées (\texttt{executeQuery}, \texttt{executeUpdate}, \texttt{beginTransaction}).
+    \item \textbf{Abstraction :} La classe \texttt{EvaluationModel} offre des méthodes de haut niveau telles que \texttt{saveNotes()} ou \texttt{getMoyenneGeneral()}, masquant la complexité des requêtes SQL de jointure multi-tables et des calculs matriciels PostgreSQL.
+    \item \textbf{Modularité :} Chaque domaine métier (élèves, classes, matières, évaluations) est représenté par une classe dédiée responsable de son propre cycle de vie et de son accès aux données.
+\end{itemize}
+
+\section{Les Principes SOLID et leur Implémentation}
+
+Les principes SOLID constituent le standard de l'ingénierie logicielle pour concevoir des architectures robustes, maintenables et évolutives.
+
+\begin{conceptBox}[Les 5 Principes SOLID]
+\begin{description}
+    \item[\textbf{S -- Single Responsibility Principle (SRP) :}] Une classe ne doit avoir qu'une seule et unique raison de changer.
+    \item[\textbf{O -- Open/Closed Principle (OCP) :}] Les entités logicielles doivent être ouvertes à l'extension mais fermées à la modification.
+    \item[\textbf{L -- Liskov Substitution Principle (LSP) :}] Les objets d'un type dérivé doivent pouvoir remplacer les objets du type de base sans altérer la cohérence du programme.
+    \item[\textbf{I -- Interface Segregation Principle (ISP) :}] Aucun client ne doit être contraint de dépendre de méthodes qu'il n'utilise pas.
+    \item[\textbf{D -- Dependency Inversion Principle (DIP) :}] Les modules de haut niveau ne doivent pas dépendre des modules de bas niveau, mais d'abstractions.
+\end{description}
+\end{conceptBox}
+
+\subsection{Concrétisation des Principes dans NotesEcole}
+Dans le cadre de la refactorisation de NotesEcole :
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{SRP Respecté :} Dans la version procédurale, \texttt{NoteController.php} gérait simultanément l'affichage, les calculs de moyennes, les requêtes SQL et la manipulation brute des sessions. Dans la version POO, les responsabilités sont rigoureusement cloisonnées :
+    \begin{itemize}
+        \item \texttt{Router} est exclusivement responsable de l'analyse d'URI et du dispatching d'actions.
+        \item \texttt{Session} centralise l'état volatile et les messages temporaires (*flash messages*).
+        \item \texttt{EvaluationModel} encapsule la persistance et les requêtes SQL d'évaluation.
+        \item \texttt{NoteController} se limite à l'orchestration des flux et à l'aiguillage vers les vues.
+    \end{itemize}
+    \item \textbf{DIP \& Injection par Constructeur :} Les contrôleurs (\texttt{NoteController}, \texttt{AuthController}) initialisent leurs dépendances au sein de leur constructeur \texttt{\_\_construct()}, instanciant leurs modèles métier de façon structurée et typée.
+\end{itemize}
+
+\section{Tableau Synthétique Comparatif : Procédural vs POO}
+
+Le tableau \ref{tab:comparatif_paradigmes} récapitule les divergences fondamentales entre l'implémentation initiale et l'architecture refactorisée.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{lXX}
+        \toprule
+        \textbf{Critère d'Évaluation} & \textbf{Approche Procédurale (Branche \texttt{main})} & \textbf{Approche POO \& MVC (Branche \texttt{POO})} \\
+        \midrule
+        \textbf{Organisation du Code} & Fonctions éparpillées dans des fichiers inclus via \texttt{require\_once}. & Classes structurées en couches logiques (\texttt{core}, \texttt{controllers}, \texttt{models}, \texttt{views}). \\
+        \addlinespace
+        \textbf{Gestion de la Connexion DB} & Variable \texttt{\$pdo} transmise manuellement en argument à chaque fonction. & Classe \texttt{Database} en \textit{Singleton}, accessible via \texttt{Database::getInstance()}. \\
+        \addlinespace
+        \textbf{Encapsulation \& État} & Inexistante : tableaux associatifs bruts modifiables depuis n'importe quel point. & Élevée : propriétés privées, méthodes d'accès, typage strict des données. \\
+        \addlinespace
+        \textbf{Routage HTTP} & Boucle itérative sur un tableau statique de chaînes sans distinction GET/POST. & Classe \texttt{Router} avec enregistrement dynamique selon les verbes HTTP (\texttt{get()}, \texttt{post()}). \\
+        \addlinespace
+        \textbf{Gestion des Sessions} & Fonctions globales avec accès direct à \texttt{\$\_SESSION} et risque d'écrasement. & Classe \texttt{Session} avec méthodes statiques et système de messages flash transitoires. \\
+        \addlinespace
+        \textbf{Gestion des Transactions} & Appels directs à \texttt{\$pdo->beginTransaction()} dispersés dans les modèles. & Méthodes d'encapsulation transactionnelle sécurisées (\texttt{beginTransaction}, \texttt{commit}, \texttt{rollBack}). \\
+        \addlinespace
+        \textbf{Évolutivité \& Tests} & Difficile : adhérence forte au runtime global et aux superglobales. & Excellente : isolation unitaire possible, mock des modèles et contrôleurs facilité. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparaison multidimensionnelle entre l'approche procédurale et l'architecture POO}
+    \label{tab:comparatif_paradigmes}
+\end{table}
+
+% ==============================================================================
+% CHAPITRE 3 : MODÉLISATION DES DONNÉES & SCHÉMA SQL POSTGRESQL
+% ==============================================================================
+\chapter{Modélisation des Données \& Schéma SQL PostgreSQL}
+\label{chap:sql}
+
+\section{Modèle Conceptuel et Logique des Données (MCD / MLD)}
+
+Le système \textbf{NotesEcole} s'appuie sur une base de données relationnelle propulsée par le SGBD \textbf{PostgreSQL} (version 16). La modélisation a été rigoureusement conçue afin de respecter la 3\textsuperscript{ème} Forme Normale (3FN), évitant toute redondance informationnelle et garantissant une intégrité référentielle stricte.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        entity/.style={rectangle, draw=primaryDark, fill=primaryLight, rounded corners, minimum width=2.8cm, minimum height=1.4cm, align=center, font=\footnotesize\bfseries},
+        relation/.style={ellipse, draw=accentGold, fill=accentGold!20, minimum width=2.2cm, minimum height=0.9cm, align=center, font=\scriptsize\bfseries},
+        link/.style={draw=primaryMed, thick}
+    ]
+        % Entités
+        \node[entity] (annee) at (0,6) {ANNEE\_SCOLAIRE\\ \normalfont\tiny id, nom, actif};
+        \node[entity] (classe) at (6,6) {CLASSE\\ \normalfont\tiny id, nomClasse};
+        \node[entity] (eleve) at (12,6) {ELEVE\\ \normalfont\tiny id, nom, prenom, matricule};
+        
+        \node[entity, fill=accentGold!10] (inscr) at (6,3.5) {INSCRIPTION\\ \normalfont\tiny id, annee\_id, eleve\_id, classe\_id};
+        
+        \node[entity] (matiere) at (0,0.5) {MATIERE\\ \normalfont\tiny id, nomMatiere};
+        \node[entity] (periode) at (12,0.5) {PERIODE\\ \normalfont\tiny id, nomPeriode};
+        \node[entity, fill=primaryMed, text=white] (eval) at (6,0.5) {EVALUATION\\ \normalfont\tiny id, inscription\_id, matiere\_id, periode\_id\\ \normalfont\tiny devoir1, devoir2, composition};
+
+        \node[entity] (role) at (0,9) {ROLE\\ \normalfont\tiny id, nomRole};
+        \node[entity] (user) at (6,9) {UTILISATEUR\\ \normalfont\tiny id, nom, prenom, email, role\_id};
+
+        % Liens
+        \draw[link] (annee) -- (inscr) node[midway, left, font=\tiny]{1,n};
+        \draw[link] (classe) -- (inscr) node[midway, left, font=\tiny]{1,n};
+        \draw[link] (eleve) -- (inscr) node[midway, right, font=\tiny]{1,n};
+        
+        \draw[link] (inscr) -- (eval) node[midway, left, font=\tiny]{1,n};
+        \draw[link] (matiere) -- (eval) node[midway, above, font=\tiny]{1,n};
+        \draw[link] (periode) -- (eval) node[midway, above, font=\tiny]{1,n};
+
+        \draw[link] (role) -- (user) node[midway, above, font=\tiny]{1,n};
+    \end{tikzpicture}
+    \caption{Diagramme Entité-Association simplifié du schéma relationnel}
+    \label{fig:diagramme_er}
+\end{figure}
+
+\section{Description des Tables et Contraintes d'Intégrité}
+
+Le schéma comprend 10 tables interconnectées par des clés étrangères avec propagation de suppression (\texttt{ON DELETE CASCADE}) pour préserver la consistance des données lors de purges ou de réinitialisations académiques.
+
+\subsection{Dictionnaire des Tables Principales}
+\begin{enumerate}
+    \item \textbf{\texttt{anneeScolaires} :} Définit les années académiques (ex. \texttt{'2025-2026'}). La colonne \texttt{actif INT} identifie l'année active par défaut (\texttt{1} pour active, \texttt{0} sinon).
+    \item \textbf{\texttt{eleves} :} Enregistre l'identité civile de l'apprenant (\texttt{nom}, \texttt{prenom}) ainsi qu'un identifiant institutionnel unique (\texttt{matricule UNIQUE}).
+    \item \textbf{\texttt{classes} :} Stocke les dénominations des cohortes scolaires (\texttt{nomClasse UNIQUE}, ex. \texttt{'3em A'}, \texttt{'4em B'}).
+    \item \textbf{\texttt{inscriptions} :} Table pivot matérialisant l'inscription d'un élève dans une classe pour une année scolaire déterminée.
+    \item \textbf{\texttt{roles} \& \texttt{utilisateurs} :} Système d'authentification RBAC (\textit{Role-Based Access Control}) intégrant le hachage sécurisé des mots de passe.
+    \item \textbf{\texttt{matieres} \& \texttt{matiere\_classes} :} Catalogue des disciplines scolaires et association des matières autorisées par niveau de classe.
+    \item \textbf{\texttt{periodes} :} Découpage temporel de l'évaluation (ex. \texttt{'Trimestre 1'}).
+    \item \textbf{\texttt{evaluations} :} Stocke les notes obtenues par inscription pour une matière et une période (\texttt{devoir1 NUMERIC(4,2)}, \texttt{devoir2 NUMERIC(4,2)}, \texttt{composition NUMERIC(4,2)}).
+\end{enumerate}
+
+\section{Analyse des Requêtes SQL Complexes et Calculs d'Agrégation}
+
+La pertinence d'un système de gestion de notes repose sur sa capacité à restituer fidèlement des grilles de saisie exhaustives et à agréger les moyennes selon des règles mathématiques strictes.
+
+\subsection{1. Extraction de la Grille de Saisie des Notes}
+Lorsqu'un enseignant sélectionne une classe, une matière et une période, le système doit afficher la totalité des élèves inscrits, qu'ils possèdent déjà une note ou non. Une jointure externe gauche (\texttt{LEFT JOIN}) est donc indispensable.
+
+\begin{lstlisting}[language=SQL, caption={Requête d'extraction matricielle des notes avec jointure externe}]
+SELECT 
+    i.id AS inscription_id,
+    e.id AS eleve_id,
+    e.nom,
+    e.prenom,
+    e.matricule,
+    ev.id AS evaluation_id,
+    COALESCE(ev.devoir1, 0) AS devoir1,
+    COALESCE(ev.devoir2, 0) AS devoir2,
+    COALESCE(ev.composition, 0) AS composition
+FROM eleves e
+JOIN inscriptions i ON i.eleve_id = e.id 
+    AND i.annee_id = :annee_id 
+    AND i.classe_id = :classe_id
+LEFT JOIN evaluations ev ON ev.inscription_id = i.id 
+    AND ev.matiere_id = :matiere_id 
+    AND ev.periode_id = :periode_id
+ORDER BY e.nom ASC, e.prenom ASC;
+\end{lstlisting}
+
+\subsection{2. Calcul de la Moyenne de Classe par Matière (avec exclusion des notes nulles)}
+Le calcul de la moyenne générale d'une classe pour une discipline donnée applique la pondération officielle et exclut les élèves n'ayant pas composé (\texttt{moyenne\_eleve > 0}) :
+
+\begin{lstlisting}[language=SQL, caption={Calcul statistique de la moyenne de classe par matière}]
+SELECT ROUND(COALESCE(AVG(moyenne_eleve), 0), 2) AS moyenne
+FROM (
+    SELECT 
+        i.id AS inscription_id,
+        ROUND((COALESCE(ev.devoir1, 0) + COALESCE(ev.devoir2, 0) + 2 * COALESCE(ev.composition, 0)) / 4.0, 2) AS moyenne_eleve
+    FROM inscriptions i
+    LEFT JOIN evaluations ev 
+           ON ev.inscription_id = i.id 
+          AND ev.matiere_id = :matiere_id 
+          AND ev.periode_id = :periode_id
+    WHERE i.annee_id = :annee_id
+      AND i.classe_id = :classe_id
+) AS moyennes_eleves
+WHERE moyenne_eleve > 0;
+\end{lstlisting}
+
+\subsection{3. Calcul de la Moyenne Générale Globale de la Classe (Multi-Matières)}
+Pour déterminer la moyenne globale de l'ensemble de la classe sur toutes les matières de son cursus, la requête exploite les fonctionnalités avancées de PostgreSQL (\texttt{unnest(ARRAY[...])}) afin de générer le produit cartésien des matières attribuées, puis calcule la moyenne des moyennes individuelles :
+
+\begin{lstlisting}[language=SQL, caption={Calcul de la moyenne globale de la classe avec expansion de tableau PostgreSQL}]
+SELECT ROUND(COALESCE(AVG(moyenne_eleve), 0), 2) AS moyenne
+FROM (
+    SELECT 
+        i.id AS inscription_id,
+        ROUND(COALESCE(SUM(ROUND((COALESCE(ev.devoir1, 0) + COALESCE(ev.devoir2, 0) + 2 * COALESCE(ev.composition, 0)) / 4.0, 2)), 0) / :nb_matieres, 2) AS moyenne_eleve
+    FROM inscriptions i
+    CROSS JOIN (SELECT unnest(ARRAY[1, 2, 3, 4]) AS matiere_id) m
+    LEFT JOIN evaluations ev 
+           ON ev.inscription_id = i.id 
+          AND ev.matiere_id = m.matiere_id 
+          AND ev.periode_id = :periode_id
+    WHERE i.annee_id = :annee_id
+      AND i.classe_id = :classe_id
+    GROUP BY i.id
+) AS moyennes_eleves
+WHERE moyenne_eleve > 0;
+\end{lstlisting}
+
+% ==============================================================================
+% CHAPITRE 4 : AUTOPSIE DE L'ARCHITECTURE PROCÉDURALE HISTORIQUE
+% ==============================================================================
+\chapter{Autopsie de l'Architecture Procédurale Historique}
+\label{chap:procedural}
+
+\section{Organisation des Fichiers et Flux d'Exécution sur la Branche \texttt{main}}
+
+Avant la refonte, le projet \textbf{NotesEcole} sur la branche \texttt{main} s'articulait autour d'un ensemble de scripts procéduraux divisés en répertoires \texttt{app/core}, \texttt{app/models}, \texttt{app/controllers} et \texttt{app/views}. Bien qu'une intention de découpage en couches fût présente, l'absence de structures de classes imposait un fonctionnement basé sur des variables globales et des inclusions directes de scripts.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=1.5cm, auto,
+        script/.style={rectangle, draw=primaryDark, fill=diffDel, text width=3.8cm, align=center, minimum height=1cm, font=\footnotesize\ttfamily},
+        func/.style={rectangle, draw=accentGold, fill=yellow!10, text width=3.5cm, align=center, minimum height=0.9cm, font=\scriptsize\ttfamily},
+        arrow/.style={draw=primaryDark, -stealth', thick}]
+
+        \node [script] (index) {public/index.php};
+        \node [script, below of=index] (router) {app/core/Router.php};
+        \node [func, right=2.5cm of router] (table) {\$Routes = [...];\\foreach (\$Routes as ...)};
+        \node [script, below of=router] (ctrl) {app/controllers/\\NoteController.php};
+        \node [func, right=2.5cm of ctrl] {indexNote();\\enregistrerNote();};
+        \node [script, below of=ctrl] (model) {app/models/\\NoteModel.php};
+        \node [func, right=2.5cm of model] {get\_eleves\_notes(\$pdo);\\sauvegarder\_notes(\$pdo);};
+        \node [script, left=2cm of model] (db) {app/core/Database.php\\connexionDB();};
+
+        \path [arrow] (index) -- (router);
+        \path [arrow] (router) -- (ctrl);
+        \path [arrow] (ctrl) -- (model);
+        \path [arrow] (db) |- (model);
+        \path [arrow] (db) |- (ctrl);
+    \end{tikzpicture}
+    \caption{Flux d'exécution procédural et dépendances sur la branche \texttt{main}}
+    \label{fig:flux_procedural}
+\end{figure}
+
+\section{Analyse Détaillée des Composants Procéduraux Initiaux}
+
+\subsection{1. Le Gestionnaire de Base de Données Procédural (\texttt{Database.php})}
+Dans la version initiale, la connexion PDO était générée par une fonction \texttt{connexionDB()} encapsulant une variable statique locale. Cependant, chaque fonction utilitaire d'exécution de requête imposait le passage explicite de cette ressource PDO en premier paramètre :
+
+\begin{lstlisting}[language=PHP, caption={Module de base de données procédural historique}]
+<?php
+// app/core/Database.php (Branche main)
+
+function connexionDB(): PDO {
+    static $pdo = null;
+    if ($pdo === null) {
+        try {
+            $pdo = new PDO("pgsql:host=localhost;dbname=notes_ecole;port=5433", "ichigo", "password");
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (Exception $ex) {
+            die('Erreur : ' . $ex->getMessage());
+        }
+    }
+    return $pdo;
+}
+
+function executeQuery(PDO $pdo, string $sql, array $datas, bool $single = false): array {
+    $statement = $pdo->prepare($sql);
+    $statement->execute($datas);
+    $result = $single ? $statement->fetch() : $statement->fetchAll();
+    return $result !== false ? $result : [];
+}
+\end{lstlisting}
+
+\subsection{2. Le Système de Routage Procédural (\texttt{Router.php})}
+Le routage était réalisé par une itération linéaire sur une matrice de routes sous forme de tableau. Aucune distinction n'était faite entre les verbes HTTP (\texttt{GET}, \texttt{POST}, etc.), ouvrant la porte à des failles potentielles lors de soumissions de formulaires :
+
+\begin{lstlisting}[language=PHP, caption={Système de routage procédural sur la branche main}]
+<?php
+// app/core/Router.php (Branche main)
+
+$Routes = [
+    ['/', 'AuthController.php', 'login'],
+    ['/login', 'AuthController.php', 'login'],
+    ['/logout', 'AuthController.php', 'logout'],
+    ['/gestion', 'NoteController.php', 'indexNote'],
+    ['/gestion/save', 'NoteController.php', 'enregistrerNote'],
+];
+
+$uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$uri = ($uri !== '/' && str_ends_with($uri, '/')) ? rtrim($uri, '/') : $uri;
+$routeFound = false;
+
+foreach ($Routes as $route) {
+    if ($route[0] === $uri) {
+        $controllerFile = dirname(__DIR__) . '/controllers/' . $route[1];
+        $action = $route[2];
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+            if (function_exists($action)) {
+                $action();
+                $routeFound = true;
+                break;
+            }
+        }
+    }
+}
+if (!$routeFound) {
+    http_response_code(404);
+    echo "<h1>404 - Page non trouvee</h1>";
+}
+\end{lstlisting}
+
+\subsection{3. Le Contrôleur et la Logique de Saisie Procéduraux}
+Dans les contrôleurs procéduraux (\texttt{AuthController.php}, \texttt{NoteController.php}), la gestion de la session, la récupération de la base de données et l'inclusion de la vue étaient complètement enchevêtrées :
+
+\begin{lstlisting}[language=PHP, caption={Contrôleur d'authentification procédural}]
+<?php
+// app/controllers/AuthController.php (Branche main)
+require_once dirname(__DIR__) . '/models/UtilisateurModel.php';
+
+function login(): void {
+    init_session();
+    if (is_logged_in() && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        header('Location: /gestion');
+        exit;
+    }
+    $error = null;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        if (!empty($email) && !empty($password)) {
+            $pdo = connexionDB(); // Instanciation explicite
+            $user = verify_user_credentials($pdo, $email, $password); // Passage de $pdo
+            if ($user) {
+                set_session('user', $user);
+                header('Location: /gestion');
+                exit;
+            } else {
+                $error = "Email ou mot de passe incorrect.";
+            }
+        }
+    }
+    require_once dirname(__DIR__) . '/views/PageConnexion.html.php';
+}
+\end{lstlisting}
+
+\section{Bilan de la Dette Technique Procédurale}
+
+\begin{diffBoxMinus}[Points Noirs de la Version Procédurale]
+\begin{itemize}[label=\textcolor{red}{\textbf{\texttimes}}]
+    \item \textbf{Propagation Forcée de la Ressource PDO :} L'obligation de transmettre \texttt{\$pdo} à travers chaque couche applicative polluait les signatures fonctionnelles et créait un couplage fort avec le pilote SQL.
+    \item \textbf{Absence d'Encapsulation des Vues :} Les vues accédaient directement aux variables définies dans la fonction appelante sans isolation de portée.
+    \item \textbf{Inflexibilité du Routage :} Impossibilité de mapper une même URL à deux contrôleurs différents selon qu'il s'agisse d'un \texttt{GET} (affichage) ou d'un \texttt{POST} (traitement).
+    \item \textbf{Difficulté Majeure de Testabilité :} Impossible de créer des doubles de test (\textit{mocks}) ou d'exécuter des tests automatisés indépendamment d'une véritable base PostgreSQL active.
+\end{itemize}
+\end{diffBoxMinus}
+
+% ==============================================================================
+% CHAPITRE 5 : DÉMARCHE MÉTHODOLOGIQUE & STRATÉGIE DE MIGRATION
+% ==============================================================================
+\chapter{Démarche Méthodologique \& Stratégie de Migration}
+\label{chap:strategie}
+
+\section{Principes Directeurs de la Refactorisation}
+
+La refactorisation d'une application existante sans interrompre la logique métier ni altérer les données sous-jacentes impose une méthodologie rigoureuse. Selon la définition de Martin Fowler, le refactoring consiste à \textit{« modifier la structure interne d'un logiciel pour le rendre plus compréhensible et moins coûteux à modifier, sans altérer son comportement observable »}.
+
+La migration de \textbf{NotesEcole} a suivi une démarche ascendante (\textit{Bottom-Up}), partant des couches d'infrastructure de bas niveau jusqu'aux couches de présentation et de routage.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        phase/.style={rectangle, draw=primaryDark, fill=primaryLight, rounded corners, minimum width=10cm, minimum height=1cm, align=left, font=\small\bfseries},
+        num/.style={circle, draw=accentGold, fill=accentGold, text=white, font=\bfseries\small, inner sep=2pt},
+        arrow/.style={draw=primaryMed, -stealth', very thick}
+    ]
+        \node[phase] (p1) at (0,4) {\hspace{0.8cm} Étape 1 : Refonte du Noyau (\texttt{Database} Singleton, \texttt{Session}, \texttt{Router})};
+        \node[num] at (-4.5,4) {1};
+
+        \node[phase] (p2) at (0,2.5) {\hspace{0.8cm} Étape 2 : Découpage \& Typage des 10 Modèles Métier (DAO / Repository)};
+        \node[num] at (-4.5,2.5) {2};
+
+        \node[phase] (p3) at (0,1) {\hspace{0.8cm} Étape 3 : Transformation des Contrôleurs en Classes Orientées Objet};
+        \node[num] at (-4.5,1) {3};
+
+        \node[phase] (p4) at (0,-0.5) {\hspace{0.8cm} Étape 4 : Refonte du Front Controller \& Définition des Routes HTTP};
+        \node[num] at (-4.5,-0.5) {4};
+
+        \node[phase] (p5) at (0,-2) {\hspace{0.8cm} Étape 5 : Validation Fonctionnelle, Tests de Non-Régression \& Audit};
+        \node[num] at (-4.5,-2) {5};
+
+        \draw[arrow] (p1) -- (p2);
+        \draw[arrow] (p2) -- (p3);
+        \draw[arrow] (p3) -- (p4);
+        \draw[arrow] (p4) -- (p5);
+    \end{tikzpicture}
+    \caption{Chronologie séquentielle des phases de refactorisation}
+    \label{fig:phases_migration}
+\end{figure}
+
+\section{Détail des Étapes de Transition}
+
+\subsection{Étape 1 : Sécurisation et Unification du Noyau (\texttt{app/core/})}
+La première priorité a consisté à éliminer la variable globale \texttt{\$pdo} et les fonctions éparses.
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item Conception de la classe \texttt{Database} appliquant le patron de conception \textbf{Singleton}. La connexion PostgreSQL est établie de manière paresseuse (\textit{lazy-loading}) à la première invocation de \texttt{Database::getInstance()}.
+    \item Implémentation de la classe utilitaire statique \texttt{Session} encapsulant \texttt{\$\_SESSION}, avec gestion des messages flash transitoires et contrôle des accès (\texttt{requireLogin()}).
+    \item Création de la classe \texttt{Router} permettant l'enregistrement fluide des routes selon le verbe HTTP (\texttt{\$router->get()}, \texttt{\$router->post()}) et le dispatching dynamique.
+\end{itemize}
+
+\subsection{Étape 2 : Éclatement et Spécialisation des Modèles (\texttt{app/models/})}
+Dans la version procédurale, certaines tables n'avaient pas de modèle propre (ex. \texttt{inscriptions}, \texttt{eleves}, \texttt{roles}, \texttt{matiere\_classes} étaient traitées au sein de requêtes ad-hoc dans \texttt{NoteModel.php}).
+La refonte a créé une classe dédiée pour chacune des 10 tables du schéma : \texttt{AnneeScolaireModel}, \texttt{ClasseModel}, \texttt{EleveModel}, \texttt{InscriptionModel}, \texttt{RoleModel}, \texttt{UtilisateurModel}, \texttt{MatiereModel}, \texttt{MatiereClasseModel}, \texttt{PeriodeModel}, \texttt{EvaluationModel}.
+
+\subsection{Étape 3 : Refactorisation des Contrôleurs (\texttt{app/controllers/})}
+Les fonctions procédurales ont été converties en méthodes au sein des classes \texttt{AuthController} et \texttt{NoteController}.
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item Injection des modèles nécessaires dès le constructeur \texttt{\_\_construct()}.
+    \item Encapsulation des méthodes utilitaires communes (\texttt{render()} pour l'extraction de données vers les vues, \texttt{redirect()} pour les en-têtes HTTP de redirection).
+    \item Maintien de l'état des sélections utilisateurs synchronisé entre \texttt{\$\_GET} et la session.
+\end{itemize}
+
+\subsection{Étape 4 : Modernisation du Point d'Entrée Unique (\texttt{public/index.php})}
+Le script d'entrée \texttt{public/index.php} est devenu un \textbf{Front Controller} pur et déclaratif, initialisant le système, déclarant les routes et démarrant le routeur :
+
+\begin{lstlisting}[language=PHP, caption={Front Controller déclaratif en POO}]
+<?php
+// public/index.php (Branche POO)
+
+require_once dirname(__DIR__) . '/app/core/Database.php';
+require_once dirname(__DIR__) . '/app/core/Session.php';
+require_once dirname(__DIR__) . '/app/core/Router.php';
+
+// Inclusions des 10 modeles et des controleurs
+// ...
+
+Session::start();
+
+$router = new Router();
+$router->get('/', 'AuthController', 'login');
+$router->get('/login', 'AuthController', 'login');
+$router->post('/login', 'AuthController', 'login');
+$router->get('/logout', 'AuthController', 'logout');
+$router->get('/gestion', 'NoteController', 'index');
+$router->post('/gestion/save', 'NoteController', 'save');
+
+$router->dispatch();
+\end{lstlisting}
+
+\section{Stratégie de Gestion de Version avec Git}
+
+Pour préserver l'historique et assurer une traçabilité intégrale :
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item La branche \texttt{main} a été conservée avec son historique jusqu'au tag \texttt{v1.1.0}, témoignant de l'état fonctionnel procédural.
+    \item Une branche dédiée \texttt{POO} a été créée pour accueillir la restructuration intégrale du code.
+    \item Un commit atomique majeur a été enregistré : \texttt{0f6083d Refactorisation complete du projet en POO \& MVC sur la branche POO}, modifiant 20 fichiers (+853 insertions, -489 suppressions).
+\end{itemize}
+
+% ==============================================================================
+% CHAPITRE 6 : CONCEPTION DE LA NOUVELLE ARCHITECTURE POO & MVC
+% ==============================================================================
+\chapter{Conception de la Nouvelle Architecture POO \& MVC}
+\label{chap:poo}
+
+\section{Le Patron MVC Appliqué à NotesEcole}
+
+L'architecture logicielle cible adoptée sur la branche \texttt{POO} repose sur le patron fondamental \textbf{Modèle-Vue-Contrôleur (MVC)}, garantissant une séparation stricte des préoccupations :
+
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Le Modèle (Model) :} Représente la couche d'accès aux données et d'application des règles métier. Il communique avec la base de données PostgreSQL via la couche d'abstraction \texttt{Database} et renvoie des données structurées.
+    \item \textbf{La Vue (View) :} Représente l'interface utilisateur graphique (fichiers \texttt{.html.php}). Elle n'effectue aucun calcul métier ni requête SQL, se contentant d'afficher les données qui lui sont transmises par le contrôleur.
+    \item \textbf{Le Contrôleur (Controller) :} Fait le lien entre la requête de l'utilisateur (HTTP), les modèles et la vue. Il réceptionne les requêtes dispatchées par le \texttt{Router}, interroge les modèles, applique les filtres, gère les sessions et choisit la vue à afficher.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2.8cm, auto,
+        block/.style={rectangle, draw=primaryDark, fill=primaryLight, rounded corners, text width=3.8cm, align=center, minimum height=1.6cm, font=\small\bfseries},
+        core/.style={rectangle, draw=accentGold, fill=yellow!10, rounded corners, text width=3.5cm, align=center, minimum height=1.3cm, font=\small\bfseries},
+        arrow/.style={draw=primaryMed, -stealth', thick}]
+
+        \node [block] (router) {Router / Dispatcher\\ \normalfont\footnotesize Analyse URI \& Méthode};
+        \node [block, right=3.5cm of router] (ctrl) {Contrôleurs (C)\\ \normalfont\footnotesize AuthController\\ \normalfont\footnotesize NoteController};
+        \node [block, below of=ctrl] (model) {Modèles (M)\\ \normalfont\footnotesize EvaluationModel\\ \normalfont\footnotesize 10 Modèles DAO};
+        \node [block, below of=router] (view) {Vues (V)\\ \normalfont\footnotesize PageConnexion\\ \normalfont\footnotesize PageGestionNote};
+        \node [core, right=2.5cm of model] (db) {Database (Singleton)\\ \normalfont\footnotesize PDO PostgreSQL};
+
+        \path [arrow] (router) -- node[above, font=\footnotesize]{Instancie \& Exécute} (ctrl);
+        \path [arrow] (ctrl) -- node[right, font=\footnotesize]{Interroge / Met à jour} (model);
+        \path [arrow] (ctrl) -- node[above, font=\footnotesize]{Injecte données} (view);
+        \path [arrow] (model) -- node[above, font=\footnotesize]{Requêtes préparées} (db);
+    \end{tikzpicture}
+    \caption{Flux d'interactions de l'architecture MVC cible de NotesEcole}
+    \label{fig:mvc_flow}
+\end{figure}
+
+\section{Le Noyau Applicatif (\texttt{app/core/})}
+
+\subsection{1. Le Patron Singleton pour la Classe \texttt{Database}}
+Afin d'éviter l'ouverture anarchique de multiples connexions TCP vers PostgreSQL (ce qui saturerait rapidement le pool de connexions du serveur), la classe \texttt{Database} applique le patron de conception \textbf{Singleton}.
+
+\begin{conceptBox}[Le Patron Singleton]
+Le Singleton garantit qu'une classe ne possède qu'\textbf{une seule et unique instance} durant tout le cycle de vie de la requête HTTP, et fournit un point d'accès global à cette instance via une méthode statique.
+\end{conceptBox}
+
+\begin{lstlisting}[language=PHP8, caption={Implémentation complète du Singleton Database}]
+<?php
+// app/core/Database.php (Extrait)
+
+class Database {
+    private static ?Database $instance = null;
+    private ?PDO $pdo = null;
+
+    // Constructeur prive : interdit l'instanciation directe via new Database()
+    private function __construct() {
+        try {
+            $this->pdo = new PDO(
+                "pgsql:host=localhost;dbname=notes_ecole;port=5433",
+                "ichigo",
+                "password"
+            );
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (Exception $ex) {
+            die('Erreur de connexion a la base de donnees : ' . $ex->getMessage());
+        }
+    }
+
+    // Point d'acces unique a l'instance
+    public static function getInstance(): Database {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    public function getConnection(): PDO {
+        return $this->pdo;
+    }
+
+    public function executeQuery(string $sql, array $datas = [], bool $single = false): array {
+        $statement = $this->prepare($sql, $datas);
+        $result = $single ? $statement->fetch() : $statement->fetchAll();
+        return $result !== false ? $result : [];
+    }
+
+    public function executeUpdate(string $sql, array $datas = []): int {
+        $statement = $this->prepare($sql, $datas);
+        if (str_starts_with(strtoupper(trim($sql)), 'INSERT')) {
+            return (int) $this->pdo->lastInsertId();
+        }
+        return $statement->rowCount();
+    }
+
+    // Gestion transactionnelle
+    public function beginTransaction(): bool { return $this->pdo->beginTransaction(); }
+    public function commit(): bool { return $this->pdo->commit(); }
+    public function rollBack(): bool { return $this->pdo->rollBack(); }
+    public function inTransaction(): bool { return $this->pdo->inTransaction(); }
+}
+\end{lstlisting}
+
+\subsection{2. Le Routeur Dynamique Orienté Verbes HTTP (\texttt{Router.php})}
+La classe \texttt{Router} isole le tableau des routes enregistrées en fonction du verbe HTTP de la requête (\texttt{GET} ou \texttt{POST}) et résout dynamiquement la classe du contrôleur et l'action à appeler par réflexion et instanciation dynamique :
+
+\begin{lstlisting}[language=PHP8, caption={La classe Router et son algorithme de dispatching}]
+<?php
+// app/core/Router.php
+
+class Router {
+    private array $routes = [];
+
+    public function get(string $path, string $controller, string $action): void {
+        $this->routes['GET'][$path] = ['controller' => $controller, 'action' => $action];
+    }
+
+    public function post(string $path, string $controller, string $action): void {
+        $this->routes['POST'][$path] = ['controller' => $controller, 'action' => $action];
+    }
+
+    public function dispatch(): void {
+        $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        if ($uri !== '/' && str_ends_with($uri, '/')) {
+            $uri = rtrim($uri, '/');
+        }
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+        if (isset($this->routes[$method][$uri])) {
+            $target = $this->routes[$method][$uri];
+            $controllerClass = $target['controller'];
+            $action = $target['action'];
+
+            if (class_exists($controllerClass)) {
+                $controller = new $controllerClass();
+                if (method_exists($controller, $action)) {
+                    $controller->$action();
+                    return;
+                }
+            }
+        }
+
+        http_response_code(404);
+        $this->render404();
+    }
+}
+\end{lstlisting}
+
+\subsection{3. Gestionnaire de Session \& Notifications Flash (\texttt{Session.php})}
+La classe \texttt{Session} encapsule l'ensemble des opérations liées à l'état de l'utilisateur en mémoire :
+
+\begin{lstlisting}[language=PHP8, caption={Gestion des sessions statiques et messages Flash}]
+<?php
+// app/core/Session.php
+
+class Session {
+    public static function start(): void {
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            session_start();
+        }
+    }
+
+    public static function set(string $key, mixed $value): void {
+        self::start();
+        $_SESSION[$key] = $value;
+    }
+
+    public static function get(string $key, mixed $default = null): mixed {
+        self::start();
+        return $_SESSION[$key] ?? $default;
+    }
+
+    public static function isLoggedIn(): bool {
+        self::start();
+        return self::get('user') !== null;
+    }
+
+    public static function requireLogin(): void {
+        if (!self::isLoggedIn()) {
+            header('Location: /login');
+            exit;
+        }
+    }
+
+    public static function setFlash(string $type, string $message): void {
+        self::set('flash_message', ['type' => $type, 'text' => $message]);
+    }
+
+    public static function getFlash(): ?array {
+        $flash = self::get('flash_message');
+        self::remove('flash_message');
+        return $flash;
+    }
+}
+\end{lstlisting}
+
+% ==============================================================================
+% CHAPITRE 7 : ÉTUDE COMPARATIVE DÉTAILLÉE DES COMPOSANTS MÉTIER
+% ==============================================================================
+\chapter{Étude Comparative Détaillée des Composants Métier}
+\label{chap:composants}
+
+\section{La Couche Modèle : Spécialisation et Encapsulation}
+
+Dans la version procédurale initiale, l'accès aux données était regroupé de manière désordonnée au sein de fichiers de fonctions tels que \texttt{NoteModel.php} (205 lignes) et \texttt{UtilisateurModel.php}. La refonte a découpé ces responsabilités en 10 classes modèles autonomes.
+
+\subsection{1. Le Modèle d'Évaluation (\texttt{EvaluationModel.php})}
+La classe \texttt{EvaluationModel} constitue le c{\oe}ur du domaine fonctionnel de gestion des notes. Elle centralise les algorithmes d'agrégation et les opérations d'écriture en base.
+
+\begin{lstlisting}[language=PHP8, caption={Structure et méthodes de la classe EvaluationModel}]
+<?php
+// app/models/EvaluationModel.php (Extrait)
+
+class EvaluationModel {
+    private Database $db;
+    private PDO $pdo;
+
+    public function __construct() {
+        $this->db = Database::getInstance();
+        $this->pdo = $this->db->getConnection();
+    }
+
+    public function getElevesNotes(int $anneeId, int $classeId, int $matiereId, int $periodeId): array {
+        $sql = "SELECT i.id AS inscription_id, e.id AS eleve_id, e.nom, e.prenom, e.matricule,
+                       ev.id AS evaluation_id,
+                       COALESCE(ev.devoir1, 0) AS devoir1,
+                       COALESCE(ev.devoir2, 0) AS devoir2,
+                       COALESCE(ev.composition, 0) AS composition
+                FROM eleves e
+                JOIN inscriptions i ON i.eleve_id = e.id AND i.annee_id = :annee_id AND i.classe_id = :classe_id
+                LEFT JOIN evaluations ev ON ev.inscription_id = i.id 
+                    AND ev.matiere_id = :matiere_id 
+                    AND ev.periode_id = :periode_id
+                ORDER BY e.nom ASC, e.prenom ASC";
+
+        return $this->db->executeQuery($sql, [
+            'annee_id' => $anneeId,
+            'classe_id' => $classeId,
+            'matiere_id' => $matiereId,
+            'periode_id' => $periodeId
+        ]);
+    }
+
+    public static function calculerMoyenneEleve(mixed $d1, mixed $d2, mixed $comp): float {
+        $v1 = ($d1 !== null && $d1 !== '') ? (float)$d1 : 0.0;
+        $v2 = ($d2 !== null && $d2 !== '') ? (float)$d2 : 0.0;
+        $vc = ($comp !== null && $comp !== '') ? (float)$comp : 0.0;
+        return round(($v1 + $v2 + 2.0 * $vc) / 4.0, 2);
+    }
+
+    public static function getAppreciationNote(?float $moyenne): array {
+        if ($moyenne === null) return ['label' => 'Insuffisant', 'cls' => 'low'];
+        if ($moyenne >= 16) return ['label' => 'Tres bien', 'cls' => ''];
+        if ($moyenne >= 14) return ['label' => 'Bien', 'cls' => ''];
+        if ($moyenne >= 12) return ['label' => 'Assez bien', 'cls' => ''];
+        if ($moyenne >= 10) return ['label' => 'Passable', 'cls' => 'mid'];
+        return ['label' => 'Insuffisant', 'cls' => 'low'];
+    }
+}
+\end{lstlisting}
+
+\subsection{2. Le Modèle d'Authentification (\texttt{UtilisateurModel.php})}
+Dans la version POO, \texttt{UtilisateurModel} effectue la vérification des identifiants avec jointure sur la table \texttt{roles}, isolant totalement le mot de passe après contrôle :
+
+\begin{lstlisting}[language=PHP8, caption={Vérification des identifiants au sein d'UtilisateurModel}]
+public function verifyCredentials(string $email, string $password): ?array {
+    $sql = "SELECT u.id, u.nom, u.prenom, u.telephone, u.email, u.password,
+                   r.id AS role_id, r.nomRole AS role_nom
+            FROM utilisateurs u
+            JOIN roles r ON r.id = u.role_id
+            WHERE u.email = :email";
+
+    $user = $this->db->executeQuery($sql, ['email' => $email], true);
+    if ($user && $user['password'] === $password) {
+        unset($user['password']); // Suppression du mot de passe de la memoire
+        return $user;
+    }
+    return null;
+}
+\end{lstlisting}
+
+\section{La Couche Contrôleur : Orchestration et Injection de Dépendances}
+
+\subsection{1. Le Contrôleur de Notes (\texttt{NoteController.php})}
+\texttt{NoteController} illustre parfaitement la puissance de la POO en injectant au sein de son constructeur les 5 modèles métier nécessaires à son exécution :
+
+\begin{lstlisting}[language=PHP8, caption={Constructeur et injection de dépendances dans NoteController}]
+<?php
+// app/controllers/NoteController.php
+
+class NoteController {
+    private AnneeScolaireModel $anneeModel;
+    private ClasseModel $classeModel;
+    private MatiereClasseModel $matiereClasseModel;
+    private PeriodeModel $periodeModel;
+    private EvaluationModel $evaluationModel;
+
+    public function __construct() {
+        $this->anneeModel = new AnneeScolaireModel();
+        $this->classeModel = new ClasseModel();
+        $this->matiereClasseModel = new MatiereClasseModel();
+        $this->periodeModel = new PeriodeModel();
+        $this->evaluationModel = new EvaluationModel();
+    }
+}
+\end{lstlisting}
+
+\subsection{2. Sauvegarde par Lot et Robustesse de l'Action \texttt{save()}}
+L'action \texttt{save()} réceptionne la matrice de notes soumise via le formulaire HTML, assainit les entrées numériques et déclenche la persistance transactionnelle avant d'émettre un message Flash :
+
+\begin{lstlisting}[language=PHP8, caption={Traitement de sauvegarde groupée et redirection PRG}]
+public function save(): void {
+    Session::requireLogin();
+
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        $classeId = (int)($_POST['classe_id'] ?? Session::get('selected_classe_id', 1));
+        $matiereId = (int)($_POST['matiere_id'] ?? Session::get('selected_matiere_id', 1));
+        $periodeId = (int)($_POST['periode_id'] ?? Session::get('selected_periode_id', 1));
+
+        $rawNotes = $_POST['notes'] ?? [];
+        $notesToSave = [];
+
+        foreach ($rawNotes as $inscriptionId => $n) {
+            $notesToSave[] = [
+                'inscription_id' => (int)$inscriptionId,
+                'devoir1' => isset($n['devoir1']) && trim((string)$n['devoir1']) !== '' ? (float)$n['devoir1'] : 0.0,
+                'devoir2' => isset($n['devoir2']) && trim((string)$n['devoir2']) !== '' ? (float)$n['devoir2'] : 0.0,
+                'composition' => isset($n['composition']) && trim((string)$n['composition']) !== '' ? (float)$n['composition'] : 0.0
+            ];
+        }
+
+        $success = $this->evaluationModel->saveNotes($matiereId, $periodeId, $notesToSave);
+        if ($success) {
+            Session::setFlash('success', 'Les notes ont ete enregistrees avec succes en base de donnees.');
+        } else {
+            Session::setFlash('error', 'Une erreur est survenue lors de l\'enregistrement des notes.');
+        }
+
+        $this->redirect("/gestion?classe_id={$classeId}&matiere_id={$matiereId}&periode_id={$periodeId}");
+    }
+    $this->redirect('/gestion');
+}
+\end{lstlisting}
+
+% ==============================================================================
+% CHAPITRE 8 : SÉCURITÉ, TRANSACTIONS ACID & QUALITÉ DU CODE
+% ==============================================================================
+\chapter{Sécurité, Transactions ACID \& Qualité du Code}
+\label{chap:securite}
+
+\section{Garantie d'Intégrité par les Transactions ACID}
+
+Dans un contexte scolaire, la saisie des notes s'effectue couramment par classe entière (soit 30 à 50 élèves par formulaire). L'écriture des notes en base implique autant d'opérations d'insertion ou de mise à jour que d'élèves inscrits.
+
+\subsection{Le Problème de l'Écriture Partielle}
+Sans gestion transactionnelle, si une coupure réseau ou une contrainte de validation échoue au 35\textsuperscript{ème} enregistrement, les 34 premiers élèves sont modifiés en base tandis que les 15 suivants demeurent inchangés. La base de données se retrouve alors dans un \textbf{état incohérent et partiel}.
+
+\begin{conceptBox}[Les Propriétés ACID]
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{A -- Atomicité :} La suite d'opérations est exécutée en totalité ou rejetée en totalité (*Tout ou Rien*).
+    \item \textbf{C -- Consistance :} Les contraintes d'intégrité de la base sont toujours respectées.
+    \item \textbf{I -- Isolation :} Les transactions concurrentes n'interfèrent pas entre elles.
+    \item \textbf{D -- Durabilité :} Une fois validées (\textit{commit}), les modifications sont persistées durablement.
+\end{itemize}
+\end{conceptBox}
+
+\subsection{Implémentation Transactionnelle dans \texttt{saveNotes()}}
+La méthode \texttt{saveNotes()} de la classe \texttt{EvaluationModel} encapsule l'intégralité du traitement dans un bloc \texttt{try / catch} transactionnel :
+
+\begin{lstlisting}[language=PHP8, caption={Implémentation de l'atomicité transactionnelle dans EvaluationModel}]
+public function saveNotes(int $matiereId, int $periodeId, array $notes): bool {
+    try {
+        $this->db->beginTransaction(); // Demarrage de la transaction
+
+        $sqlCheck = "SELECT id FROM evaluations 
+                     WHERE inscription_id = :inscription_id 
+                       AND matiere_id = :matiere_id 
+                       AND periode_id = :periode_id";
+        $sqlInsert = "INSERT INTO evaluations (inscription_id, matiere_id, periode_id, devoir1, devoir2, composition) 
+                      VALUES (:inscription_id, :matiere_id, :periode_id, :devoir1, :devoir2, :composition)";
+        $sqlUpdate = "UPDATE evaluations 
+                      SET devoir1 = :devoir1, devoir2 = :devoir2, composition = :composition 
+                      WHERE id = :id";
+
+        foreach ($notes as $note) {
+            $inscriptionId = (int) $note['inscription_id'];
+            $d1 = (float) $note['devoir1'];
+            $d2 = (float) $note['devoir2'];
+            $comp = (float) $note['composition'];
+
+            $existing = $this->db->executeQuery($sqlCheck, [
+                'inscription_id' => $inscriptionId,
+                'matiere_id' => $matiereId,
+                'periode_id' => $periodeId
+            ], true);
+
+            if (!empty($existing) && isset($existing['id'])) {
+                $this->db->executeUpdate($sqlUpdate, [
+                    'id' => $existing['id'],
+                    'devoir1' => $d1,
+                    'devoir2' => $d2,
+                    'composition' => $comp
+                ]);
+            } else {
+                $this->db->executeUpdate($sqlInsert, [
+                    'inscription_id' => $inscriptionId,
+                    'matiere_id' => $matiereId,
+                    'periode_id' => $periodeId,
+                    'devoir1' => $d1,
+                    'devoir2' => $d2,
+                    'composition' => $comp
+                ]);
+            }
+        }
+
+        $this->db->commit(); // Validation globale atomique
+        return true;
+    } catch (Exception $e) {
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack(); // Annulation immediate en cas d'erreur
+        }
+        return false;
+    }
+}
+\end{lstlisting}
+
+\section{Sécurisation contre les Injections SQL via Requêtes Préparées}
+
+Toutes les requêtes SQL du projet sans exception sont exécutées au moyen de \textbf{requêtes préparées PDO} avec liaison de paramètres nommés.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=2.2cm, auto,
+        block/.style={rectangle, draw=primaryDark, fill=primaryLight, rounded corners, minimum width=3.8cm, minimum height=1.1cm, align=center, font=\small\bfseries},
+        sql/.style={rectangle, draw=accentGold, fill=yellow!15, rounded corners, minimum width=3.5cm, minimum height=1.1cm, align=center, font=\footnotesize\ttfamily},
+        arrow/.style={draw=primaryMed, -stealth', thick}
+    ]
+        \node [block] (input) {Entrée Utilisateur\\ \normalfont\footnotesize \texttt{\$\_POST['email']}};
+        \node [sql, right=2.2cm of input] (prep) {Template SQL Compilé\\ \normalfont\tiny \texttt{SELECT * WHERE email = :email}};
+        \node [block, right=2.2cm of prep, fill=primaryMed, text=white] (driver) {Exécution SGBD\\ \normalfont\footnotesize Données traitées comme littéral pur};
+
+        \path [arrow] (input) -- node[above, font=\tiny]{Paramètre séparé} (prep);
+        \path [arrow] (prep) -- node[above, font=\tiny]{Liaison PDO} (driver);
+    \end{tikzpicture}
+    \caption{Mécanisme d'immunisation contre les injections SQL par séparation du code et des données}
+    \label{fig:injection_prevention}
+\end{figure}
+
+\section{Typage Strict et Modernité PHP 8.x}
+
+La refonte en POO tire pleinement parti des fonctionnalités introduites dans les versions récentes de PHP (8.0, 8.1, 8.2) :
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Propriétés Typées dans les Classes :} Déclaration explicite des types d'attributs (\texttt{private Database \$db;}, \texttt{private ?PDO \$pdo = null;}), interdisant toute assignation de type incohérent au moment de l'exécution.
+    \item \textbf{Types d'Union et Types Nullables :} Emploi de \texttt{string|false}, \texttt{?array}, \texttt{?int} permettant une signature de fonctions transparente et rigoureuse.
+    \item \textbf{Fonctions Natives Modernes :} Utilisation de \texttt{str\_starts\_with()} et \texttt{str\_ends\_with()} pour la détection sémantique des requêtes \texttt{INSERT} et le formatage des URIs dans le routeur.
+\end{itemize}
+
+% ==============================================================================
+% CHAPITRE 9 : GUIDE DE DÉPLOIEMENT & PERSPECTIVES D'ÉVOLUTION
+% ==============================================================================
+\chapter{Guide de Déploiement \& Perspectives d'Évolution}
+\label{chap:deploiement}
+
+\section{Guide de Déploiement et Configuration de l'Application}
+
+Pour déployer l'application \textbf{NotesEcole} dans un environnement de test ou de production, les étapes suivantes sont préconisées.
+
+\subsection{Prérequis Système}
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{PHP :} Version 8.2 ou supérieure avec les extensions activées : \texttt{pdo}, \texttt{pdo\_pgsql}, \texttt{session}, \texttt{filter}, \texttt{json}.
+    \item \textbf{Base de Données :} PostgreSQL 14+ (configuré sur le port \texttt{5433} ou standard \texttt{5432}).
+    \item \textbf{Serveur Web :} Nginx, Apache (avec module \texttt{mod\_rewrite} actif) ou le serveur interne PHP pour le développement.
+\end{itemize}
+
+\subsection{Initialisation de la Base de Données}
+L'initialisation du schéma relationnel et des données de démonstration s'effectue via le script \texttt{requete.sql} :
+
+\begin{lstlisting}[language=bash, caption={Commandes d'initialisation de la base PostgreSQL}]
+# Creation de la base de donnees et import des tables
+psql -h localhost -p 5433 -U ichigo -d postgres -c "CREATE DATABASE notes_ecole;"
+psql -h localhost -p 5433 -U ichigo -d notes_ecole -f requete.sql
+\end{lstlisting}
+
+\subsection{Lancement de l'Application en Environnement Local}
+Pour démarrer le serveur de développement local avec pointage sur le dossier \texttt{public/} :
+
+\begin{lstlisting}[language=bash, caption={Lancement du serveur PHP natif}]
+php -S localhost:8000 -t public
+\end{lstlisting}
+
+L'application est immédiatement accessible à l'adresse \url{http://localhost:8000/login}.
+
+\section{Guide de Compilation du Document LaTeX}
+
+Le présent document a été conçu selon les standards académiques et peut être compilé via n'importe quelle distribution TeX moderne (\textbf{TeXLive 2022+}, \textbf{MacTeX}, \textbf{MikTeX}) ou importé directement sur la plateforme en ligne \textbf{Overleaf}.
+
+\subsection{Compilation en Ligne de Commande}
+Pour résoudre l'ensemble des références croisées, tables des matières, listes de figures et listings de code, une double passe de compilation est requise :
+
+\begin{lstlisting}[language=bash, caption={Compilation de la documentation via pdflatex}]
+pdflatex -interaction=nonstopmode documentation_complete.tex
+pdflatex -interaction=nonstopmode documentation_complete.tex
+\end{lstlisting}
+
+\section{Perspectives d'Évolution et Feuille de Route (*Roadmap*)}
+
+La refactorisation réussie vers la POO et le MVC pose des fondations saines permettant d'envisager des évolutions architecturales majeures :
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        stepnode/.style={rectangle, draw=primaryDark, fill=primaryLight, rounded corners, minimum width=3.8cm, minimum height=1.4cm, align=center, font=\footnotesize\bfseries},
+        arrow/.style={draw=accentGold, -stealth', very thick}
+    ]
+        \node[stepnode] (psr) at (0,0) {1. Autoloading PSR-4\\ \normalfont\tiny Intégration Composer};
+        \node[stepnode] (tpl) at (4.8,0) {2. Moteur de Templates\\ \normalfont\tiny Twig / Blade};
+        \node[stepnode] (test) at (9.6,0) {3. Tests Automatisés\\ \normalfont\tiny PHPUnit \& Pest PHP};
+        \node[stepnode] (api) at (14.4,0) {4. API REST / GraphQL\\ \normalfont\tiny App Mobile Parents};
+
+        \draw[arrow] (psr) -- (tpl);
+        \draw[arrow] (tpl) -- (test);
+        \draw[arrow] (test) -- (api);
+    \end{tikzpicture}
+    \caption{Feuille de route technique pour les versions futures de NotesEcole}
+    \label{fig:roadmap}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Autoloading PSR-4 et Composer :} Remplacer les directives \texttt{require\_once} manuelles par l'autoloading standardisé de Composer (\texttt{vendor/autoload.php}) sous l'espace de nommage \texttt{App\textbackslash}.
+    \item \textbf{Moteur de Rendu Dédié (Twig) :} Remplacer les inclusions de fichiers \texttt{.html.php} par des templates Twig afin d'offrir l'héritage de mise en page (*layout inheritance*) et l'échappement XSS automatique.
+    \item \textbf{Suite de Tests Automatisés (PHPUnit) :} Écrire une suite de tests unitaires pour valider les formules de calcul de moyennes (\texttt{calculerMoyenneEleve}) et les règles d'arrondi.
+    \item \textbf{Interface API REST / Mobile :} Exposer les données d'évaluation via une API REST sécurisée par JWT, permettant la consultation des bulletins scolaires sur smartphone par les parents d'élèves.
+\end{enumerate}
+
+% ==============================================================================
+% CHAPITRE 10 : CONCLUSION GÉNÉRALE & BILAN TECHNIQUE
+% ==============================================================================
+\chapter{Conclusion Générale \& Bilan Technique}
+\label{chap:conclusion}
+
+\section{Synthèse de la Transformation Logicielle}
+
+La refactorisation du projet \textbf{NotesEcole} depuis une approche purement procédurale vers une architecture orientée objet structurée en \textbf{MVC (Modèle-Vue-Contrôleur)} marque une étape décisive dans la pérennisation et la professionnalisation de l'application.
+
+En substituant des fonctions globales et des inclusions manuelles par des classes cohérentes dotées de responsabilités unitaires (\textit{Single Responsibility Principle}), le système a éliminé sa dette technique originelle tout en renforçant son niveau de sécurité et d'évolutivité.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        gain/.style={rectangle, draw=primaryMed, fill=primaryLight, rounded corners, minimum width=6cm, minimum height=1.2cm, align=center, font=\small\bfseries},
+        val/.style={circle, draw=accentGold, fill=accentGold!20, font=\bfseries\small, inner sep=3pt}
+    ]
+        \node[gain] (g1) at (0,3) {Sécurité \& Transactions ACID\\ \normalfont\footnotesize Zéro écriture partielle, PDO préparé};
+        \node[gain] (g2) at (7,3) {Découplage \& Encapsulation\\ \normalfont\footnotesize Singleton DB, modificateurs d'accès};
+        \node[gain] (g3) at (0,0.8) {Maintenabilité \& Typage Fort\\ \normalfont\footnotesize Signatures PHP 8, modèles spécialisés};
+        \node[gain] (g4) at (7,0.8) {Extensibilité \& Évolution\\ \normalfont\footnotesize Ajout de modules sans régression};
+    \end{tikzpicture}
+    \caption{Les quatre piliers de la valeur ajoutée apportée par la refonte POO}
+    \label{fig:valeur_ajoutee}
+\end{figure}
+
+\section{Bilan Quantitatif et Qualitatif}
+
+\subsection{Indicateurs Qualitatifs}
+\begin{itemize}[label=\textcolor{primaryMed}{\textbullet}]
+    \item \textbf{Élimination du Couplage Transversal :} La ressource de connexion PDO n'est plus véhiculée à travers des dizaines de fonctions intermédiaires. La classe \texttt{Database} gère son propre cycle de vie et protège la ressource.
+    \item \textbf{Robustesse Métier :} Le calcul des moyennes scolaires, pondérations et arrondis à deux décimales (\texttt{ROUND(..., 2)}) est désormais encapsulé dans \texttt{EvaluationModel}, avec filtrage garanti des notes nulles.
+    \item \textbf{Expérience Utilisateur Améliorée :} La persistance des filtres de sélection en session (\texttt{classe\_id}, \texttt{matiere\_id}, \texttt{periode\_id}) évite les réinitialisations intempestives lors de la navigation ou de la sauvegarde des notes.
+\end{itemize}
+
+\subsection{Indicateurs Métriques du Dépôt Git}
+La refonte concentrée sur la branche \texttt{POO} témoigne d'un remaniement en profondeur :
+\begin{itemize}
+    \item \textbf{20 fichiers} impactés au c{\oe}ur du projet.
+    \item \textbf{+853 lignes de code} structurées, documentées et typées.
+    \item \textbf{-489 lignes de code} procédural déprécié supprimées.
+    \item \textbf{10 classes modèles} créées pour refléter l'intégralité du schéma relationnel PostgreSQL.
+\end{itemize}
+
+% ==============================================================================
+% ANNEXES & RÉFÉRENCES
+% ==============================================================================
+\appendix
+
+\chapter{Dictionnaire de Données Exhaustif}
+\label{anx:dictionnaire}
+
+\section{Détail des Tables du Schéma PostgreSQL}
+
+Le tableau \ref{tab:dictionnaire_donnees} répertorie l'intégralité des colonnes, types et contraintes du schéma de la base de données \texttt{notes\_ecole}.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \begin{tabularx}{\textwidth}{llllX}
+        \toprule
+        \textbf{Table} & \textbf{Champ} & \textbf{Type} & \textbf{Null / Def} & \textbf{Description \& Contraintes} \\
+        \midrule
+        \texttt{anneeScolaires} & \texttt{id} & SERIAL & PK & Identifiant unique de l'année scolaire \\
+        & \texttt{nom} & VARCHAR(30) & NOT NULL & Libellé de l'année scolaire (UNIQUE, ex. 2025-2026) \\
+        & \texttt{date} & DATE & DEFAULT NOW & Date d'ouverture de l'année \\
+        & \texttt{actif} & INT & NULL & 1 si active, 0 sinon \\
+        \midrule
+        \texttt{eleves} & \texttt{id} & SERIAL & PK & Identifiant unique de l'élève \\
+        & \texttt{nom} & VARCHAR(50) & NOT NULL & Nom de famille de l'élève \\
+        & \texttt{prenom} & VARCHAR(50) & NOT NULL & Prénom de l'élève \\
+        & \texttt{matricule} & VARCHAR(30) & NOT NULL & Numéro matricule unique (UNIQUE, ex. JE-26002) \\
+        \midrule
+        \texttt{classes} & \texttt{id} & SERIAL & PK & Identifiant de la classe \\
+        & \texttt{nomClasse} & VARCHAR(30) & NOT NULL & Nom de la cohorte (UNIQUE, ex. 3em A) \\
+        \midrule
+        \texttt{inscriptions} & \texttt{id} & SERIAL & PK & Identifiant unique de l'inscription \\
+        & \texttt{annee\_id} & INT & FK & Référence vers \texttt{anneeScolaires(id)} ON DELETE CASCADE \\
+        & \texttt{eleve\_id} & INT & FK & Référence vers \texttt{eleves(id)} ON DELETE CASCADE \\
+        & \texttt{classe\_id} & INT & FK & Référence vers \texttt{classes(id)} ON DELETE CASCADE \\
+        \midrule
+        \texttt{roles} & \texttt{id} & SERIAL & PK & Identifiant du rôle \\
+        & \texttt{nomRole} & VARCHAR(50) & NOT NULL & Nom du rôle (Direction, Professeur, Surveillant) \\
+        \midrule
+        \texttt{utilisateurs} & \texttt{id} & SERIAL & PK & Identifiant de l'utilisateur \\
+        & \texttt{nom} & VARCHAR(50) & NOT NULL & Nom de famille \\
+        & \texttt{prenom} & VARCHAR(50) & NOT NULL & Prénom \\
+        & \texttt{telephone} & VARCHAR(30) & NOT NULL & Numéro de téléphone (UNIQUE) \\
+        & \texttt{email} & VARCHAR(30) & NOT NULL & Adresse email de connexion (UNIQUE) \\
+        & \texttt{password} & VARCHAR & NULL & Mot de passe haché ou en clair \\
+        & \texttt{role\_id} & INT & FK & Référence vers \texttt{roles(id)} \\
+        \midrule
+        \texttt{matieres} & \texttt{id} & SERIAL & PK & Identifiant de la discipline \\
+        & \texttt{nomMatiere} & VARCHAR(40) & NOT NULL & Nom de la matière (UNIQUE, ex. Mathématique) \\
+        \midrule
+        \texttt{matiere\_classes} & \texttt{id} & SERIAL & PK & Identifiant de la liaison \\
+        & \texttt{classe\_id} & INT & FK & Référence vers \texttt{classes(id)} ON DELETE CASCADE \\
+        & \texttt{matiere\_id} & INT & FK & Référence vers \texttt{matieres(id)} ON DELETE CASCADE \\
+        \midrule
+        \texttt{periodes} & \texttt{id} & SERIAL & PK & Identifiant du trimestre \\
+        & \texttt{nomPeriode} & VARCHAR(50) & NOT NULL & Libellé de la période (Trimestre 1, 2, 3) \\
+        \midrule
+        \texttt{evaluations} & \texttt{id} & SERIAL & PK & Identifiant de la note \\
+        & \texttt{inscription\_id} & INT & FK & Référence vers \texttt{inscriptions(id)} ON DELETE CASCADE \\
+        & \texttt{matiere\_id} & INT & FK & Référence vers \texttt{matieres(id)} ON DELETE CASCADE \\
+        & \texttt{periode\_id} & INT & FK & Référence vers \texttt{periodes(id)} ON DELETE CASCADE \\
+        & \texttt{devoir1} & NUMERIC(4,2) & NULL & Note de contrôle continu 1 (/20) \\
+        & \texttt{devoir2} & NUMERIC(4,2) & NULL & Note de contrôle continu 2 (/20) \\
+        & \texttt{composition} & NUMERIC(4,2) & NULL & Note d'épreuve terminale (/20, coef 2) \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Dictionnaire exhaustif des données du projet NotesEcole}
+    \label{tab:dictionnaire_donnees}
+\end{table}
+
+\chapter{Diagramme de Classes UML Global}
+\label{anx:uml}
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tikzpicture}[
+        classNode/.style={rectangle, draw=primaryDark, fill=white, rounded corners=2pt, minimum width=4.5cm, align=left, font=\scriptsize\ttfamily, drop shadow},
+        header/.style={fill=primaryMed, text=white, font=\bfseries\small},
+        conn/.style={draw=primaryDark, -open triangle 60, thick}
+    ]
+        % Database
+        \node[classNode] (db) at (0,7) {
+            \textbf{\color{primaryMed}Database}\\
+            \hline
+            - static instance: ?Database\\
+            - pdo: ?PDO\\
+            \hline
+            + static getInstance(): Database\\
+            + getConnection(): PDO\\
+            + executeQuery(sql, datas, single): array\\
+            + executeUpdate(sql, datas): int\\
+            + beginTransaction(): bool\\
+            + commit(): bool\\
+            + rollBack(): bool
+        };
+
+        % Session
+        \node[classNode] (sess) at (6.5,7) {
+            \textbf{\color{primaryMed}Session}\\
+            \hline
+            + static start(): void\\
+            + static set(key, value): void\\
+            + static get(key, default): mixed\\
+            + static isLoggedIn(): bool\\
+            + static requireLogin(): void\\
+            + static setFlash(type, msg): void\\
+            + static getFlash(): ?array
+        };
+
+        % Router
+        \node[classNode] (router) at (13,7) {
+            \textbf{\color{primaryMed}Router}\\
+            \hline
+            - routes: array\\
+            \hline
+            + get(path, ctrl, action): void\\
+            + post(path, ctrl, action): void\\
+            + dispatch(): void
+        };
+
+        % Models
+        \node[classNode] (evalModel) at (0,1.5) {
+            \textbf{\color{primaryMed}EvaluationModel}\\
+            \hline
+            - db: Database\\
+            - pdo: PDO\\
+            \hline
+            + getElevesNotes(...): array\\
+            + getMoyenneGeneral(...): float\\
+            + saveNotes(mId, pId, notes): bool\\
+            + static calculerMoyenneEleve(...): float\\
+            + static getAppreciationNote(...): array
+        };
+
+        \node[classNode] (userModel) at (6.5,1.5) {
+            \textbf{\color{primaryMed}UtilisateurModel}\\
+            \hline
+            - db: Database\\
+            - pdo: PDO\\
+            \hline
+            + verifyCredentials(email, pwd): ?array\\
+            + findByEmail(email): ?array\\
+            + findAll(): array
+        };
+
+        % Controllers
+        \node[classNode] (authCtrl) at (6.5,-3.5) {
+            \textbf{\color{primaryMed}AuthController}\\
+            \hline
+            - utilisateurModel: UtilisateurModel\\
+            \hline
+            + login(): void\\
+            + logout(): void\\
+            - render(view, data): void\\
+            - redirect(url): void
+        };
+
+        \node[classNode] (noteCtrl) at (0,-3.5) {
+            \textbf{\color{primaryMed}NoteController}\\
+            \hline
+            - anneeModel: AnneeScolaireModel\\
+            - classeModel: ClasseModel\\
+            - matiereClasseModel: MatiereClasseModel\\
+            - periodeModel: PeriodeModel\\
+            - evaluationModel: EvaluationModel\\
+            \hline
+            + index(): void\\
+            + save(): void\\
+            - render(view, data): void\\
+            - redirect(url): void
+        };
+
+        % Relations
+        \draw[conn] (evalModel) -- (db);
+        \draw[conn] (userModel) -- (db);
+        \draw[conn] (authCtrl) -- (userModel);
+        \draw[conn] (noteCtrl) -- (evalModel);
+    \end{tikzpicture}
+    }
+    \caption{Diagramme de classes UML global de l'architecture POO \& MVC}
+    \label{fig:diagramme_uml_global}
+\end{figure}
+
+\chapter{Glossaire des Termes d'Ingénierie Logicielle}
+\label{anx:glossaire}
+
+\begin{description}
+    \item[\textbf{ACID (Atomicité, Consistance, Isolation, Durabilité) :}] Ensemble de propriétés garantissant la fiabilité et la cohérence des transactions au sein d'une base de données relationnelle.
+    \item[\textbf{DAO (Data Access Object) :}] Patron de conception permettant de séparer la logique d'accès aux données des règles de traitement métier.
+    \item[\textbf{Encapsulation :}] Principe de programmation objet consistant à regrouper les données et les méthodes agissant sur ces données au sein d'une même entité, en masquant sa structure interne.
+    \item[\textbf{Front Controller :}] Patron d'architecture centralisant le traitement de toutes les requêtes entrantes d'une application Web en un point d'entrée unique (\texttt{public/index.php}).
+    \item[\textbf{MVC (Modèle-Vue-Contrôleur) :}] Patron d'architecture logicielle séparant l'application en trois composants interconnectés : la logique métier (Modèle), l'interface visuelle (Vue) et la gestion des flux (Contrôleur).
+    \item[\textbf{PRG (Post/Redirect/Get) :}] Patron de conception Web évitant la double soumission de formulaires en redirigeant l'utilisateur via une requête \texttt{GET} immédiatement après le traitement réussi d'un \texttt{POST}.
+    \item[\textbf{Singleton :}] Patron de conception restreignant l'instanciation d'une classe à une unique instance globale partagée.
+    \item[\textbf{Injection SQL :}] Vulnérabilité de sécurité permettant à un attaquant d'injecter des commandes SQL non autorisées au sein des requêtes d'une application.
+\end{description}
+
+\chapter{Références \& Bibliographie}
+\label{anx:bibliographie}
+
+\begin{enumerate}
+    \item \textbf{Gamma, E., Helm, R., Johnson, R., \& Vlissides, J. (1994).} \textit{Design Patterns: Elements of Reusable Object-Oriented Software}. Addison-Wesley Professional.
+    \item \textbf{Fowler, M. (2018).} \textit{Refactoring: Improving the Design of Existing Code} (2nd Edition). Addison-Wesley Professional.
+    \item \textbf{Martin, R. C. (2008).} \textit{Clean Code: A Handbook of Agile Software Craftsmanship}. Prentice Hall.
+    \item \textbf{PHP Documentation Group (2026).} \textit{PHP 8.2 & PDO Reference Manual}. Disponible en ligne sur : \url{https://www.php.net/docs.php}.
+    \item \textbf{The PostgreSQL Global Development Group (2026).} \textit{PostgreSQL 16 Documentation - Data Aggregation and Array Functions}. Disponible sur : \url{https://www.postgresql.org/docs/16/}.
+\end{enumerate}
+
+\end{document}
