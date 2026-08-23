@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__DIR__) . '/Entity/Utilisateur.php';
+
 class Session {
     public static function start(): void {
         if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
@@ -15,6 +17,22 @@ class Session {
     public static function get(string $key, mixed $default = null): mixed {
         self::start();
         return $_SESSION[$key] ?? $default;
+    }
+
+    public static function getUser(): ?Utilisateur {
+        self::start();
+        $user = $_SESSION['user'] ?? null;
+        if ($user instanceof Utilisateur) {
+            return $user;
+        }
+        if (is_array($user)) {
+            return Utilisateur::fromArray($user);
+        }
+        return null;
+    }
+
+    public static function setUser(Utilisateur|array $user): void {
+        self::set('user', $user);
     }
 
     public static function has(string $key): bool {
@@ -35,7 +53,7 @@ class Session {
 
     public static function isLoggedIn(): bool {
         self::start();
-        return self::get('user') !== null;
+        return self::getUser() !== null;
     }
 
     public static function requireLogin(): void {

@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/core/Database.php';
+require_once dirname(__DIR__) . '/Entity/Eleve.php';
 
 class EleveModel {
     private Database $db;
@@ -11,20 +12,24 @@ class EleveModel {
         $this->pdo = $this->db->getConnection();
     }
 
+    /**
+     * @return Eleve[]
+     */
     public function findAll(): array {
         $sql = "SELECT * FROM eleves ORDER BY nom ASC, prenom ASC";
-        return $this->db->query($sql);
+        $results = $this->db->query($sql);
+        return array_map(fn(array $row) => Eleve::fromArray($row), $results);
     }
 
-    public function findById(int $id): ?array {
+    public function findById(int $id): ?Eleve {
         $sql = "SELECT * FROM eleves WHERE id = :id";
         $result = $this->db->executeQuery($sql, ['id' => $id], true);
-        return !empty($result) ? $result : null;
+        return !empty($result) ? Eleve::fromArray($result) : null;
     }
 
-    public function findByMatricule(string $matricule): ?array {
+    public function findByMatricule(string $matricule): ?Eleve {
         $sql = "SELECT * FROM eleves WHERE matricule = :matricule";
         $result = $this->db->executeQuery($sql, ['matricule' => $matricule], true);
-        return !empty($result) ? $result : null;
+        return !empty($result) ? Eleve::fromArray($result) : null;
     }
 }

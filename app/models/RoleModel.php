@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/core/Database.php';
+require_once dirname(__DIR__) . '/Entity/Role.php';
 
 class RoleModel {
     private Database $db;
@@ -11,14 +12,18 @@ class RoleModel {
         $this->pdo = $this->db->getConnection();
     }
 
+    /**
+     * @return Role[]
+     */
     public function findAll(): array {
         $sql = "SELECT * FROM roles ORDER BY id ASC";
-        return $this->db->query($sql);
+        $results = $this->db->query($sql);
+        return array_map(fn(array $row) => Role::fromArray($row), $results);
     }
 
-    public function findById(int $id): ?array {
+    public function findById(int $id): ?Role {
         $sql = "SELECT * FROM roles WHERE id = :id";
         $result = $this->db->executeQuery($sql, ['id' => $id], true);
-        return !empty($result) ? $result : null;
+        return !empty($result) ? Role::fromArray($result) : null;
     }
 }

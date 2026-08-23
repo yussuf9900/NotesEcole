@@ -26,8 +26,14 @@ class AuthController {
             if (!empty($email) && !empty($password)) {
                 $user = $this->utilisateurModel->verifyCredentials($email, $password);
                 if ($user) {
-                    Session::set('user', $user);
-                    $this->redirect('/gestion');
+                    $roleNom = strtolower($user->getNomRole());
+                    $isDirectrice = (str_contains($roleNom, 'direction') || $user->getRoleId() === 1 || $user->getEmail() === 'fatouSall@gmail.com');
+                    if ($isDirectrice) {
+                        Session::set('user', $user);
+                        $this->redirect('/gestion');
+                    } else {
+                        $error = "Accès non autorisé : seul le profil de la directrice est autorisé à se connecter.";
+                    }
                 } else {
                     $error = "Email ou mot de passe incorrect.";
                 }

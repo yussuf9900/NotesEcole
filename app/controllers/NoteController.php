@@ -6,6 +6,7 @@ require_once dirname(__DIR__) . '/models/ClasseModel.php';
 require_once dirname(__DIR__) . '/models/MatiereClasseModel.php';
 require_once dirname(__DIR__) . '/models/PeriodeModel.php';
 require_once dirname(__DIR__) . '/models/EvaluationModel.php';
+require_once dirname(__DIR__) . '/Entity/Evaluation.php';
 
 class NoteController {
     private AnneeScolaireModel $anneeModel;
@@ -29,20 +30,21 @@ class NoteController {
         $classes = $this->classeModel->findAll();
         $periodes = $this->periodeModel->findAll();
 
+        $firstClasseId = !empty($classes) ? $classes[0]->getId() : 1;
         if (isset($_GET['classe_id']) && $_GET['classe_id'] !== '') {
             $selectedClasseId = (int)$_GET['classe_id'];
         } else {
-            $selectedClasseId = (int)Session::get('selected_classe_id', $classes[0]['id'] ?? 1);
+            $selectedClasseId = (int)Session::get('selected_classe_id', $firstClasseId);
         }
 
-        $validClasseIds = array_column($classes, 'id');
+        $validClasseIds = array_map(fn(Classe $c) => $c->getId(), $classes);
         if (!in_array($selectedClasseId, $validClasseIds, true) && !empty($validClasseIds)) {
             $selectedClasseId = $validClasseIds[0];
         }
         Session::set('selected_classe_id', $selectedClasseId);
 
         $matieres = $this->matiereClasseModel->getMatieresByClasseId($selectedClasseId);
-        $validMatiereIds = array_column($matieres, 'id');
+        $validMatiereIds = array_map(fn(Matiere $m) => $m->getId(), $matieres);
 
         if (isset($_GET['matiere_id']) && $_GET['matiere_id'] !== '') {
             $selectedMatiereId = (int)$_GET['matiere_id'];
@@ -55,11 +57,11 @@ class NoteController {
         }
         Session::set('selected_matiere_id', $selectedMatiereId);
 
-        $validPeriodeIds = array_column($periodes, 'id');
+        $validPeriodeIds = array_map(fn(Periode $p) => $p->getId(), $periodes);
         if (isset($_GET['periode_id']) && $_GET['periode_id'] !== '') {
             $selectedPeriodeId = (int)$_GET['periode_id'];
         } else {
-            $selectedPeriodeId = (int)Session::get('selected_periode_id', $periodes[0]['id'] ?? 1);
+            $selectedPeriodeId = (int)Session::get('selected_periode_id', $validPeriodeIds[0] ?? 1);
         }
 
         if (!in_array($selectedPeriodeId, $validPeriodeIds, true) && !empty($validPeriodeIds)) {
@@ -67,13 +69,13 @@ class NoteController {
         }
         Session::set('selected_periode_id', $selectedPeriodeId);
 
-        $anneeId = $anneeActive['id'] ?? 1;
+        $anneeId = $anneeActive ? (int)$anneeActive->getId() : 1;
         $elevesNotes = $this->evaluationModel->getElevesNotes($anneeId, $selectedClasseId, $selectedMatiereId, $selectedPeriodeId);
 
         $moyenneClasseMatiere = $this->evaluationModel->getMoyenneGeneral($anneeId, $selectedClasseId, $selectedPeriodeId, $selectedMatiereId);
         $moyenneGeneraleClasse = $this->evaluationModel->getMoyenneGeneral($anneeId, $selectedClasseId, $selectedPeriodeId);
 
-        $currentUser = Session::get('user');
+        $currentUser = Session::getUser() ?? Session::get('user');
         $flashMessage = Session::getFlash();
 
         $this->render('PageGestionNote.html.php', [
@@ -112,12 +114,15 @@ class NoteController {
                 $d2 = (isset($n['devoir2']) && trim((string)$n['devoir2']) !== '') ? (float)$n['devoir2'] : 0.0;
                 $comp = (isset($n['composition']) && trim((string)$n['composition']) !== '') ? (float)$n['composition'] : 0.0;
 
-                $notesToSave[] = [
-                    'inscription_id' => (int)$inscriptionId,
-                    'devoir1' => $d1,
-                    'devoir2' => $d2,
-                    'composition' => $comp
-                ];
+                $eval = new Evaluation();
+                $eval->setInscriptionId((int)$inscriptionId);
+                $eval->setMatiereId($matiereId);
+                $eval->setPeriodeId($periodeId);
+                $eval->setDevoir1($d1);
+                $eval->setDevoir2($d2);
+                $eval->setComposition($comp);
+
+                $notesToSave[] = $eval;
             }
 
             $success = $this->evaluationModel->saveNotes($matiereId, $periodeId, $notesToSave);

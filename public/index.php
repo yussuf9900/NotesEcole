@@ -17,6 +17,18 @@ require_once dirname(__DIR__) . '/app/models/MatiereClasseModel.php';
 require_once dirname(__DIR__) . '/app/models/PeriodeModel.php';
 require_once dirname(__DIR__) . '/app/models/EvaluationModel.php';
 
+// Inclusion des 10 entités
+require_once dirname(__DIR__) . '/app/Entity/AnneeScolaire.php';
+require_once dirname(__DIR__) . '/app/Entity/Eleve.php';
+require_once dirname(__DIR__) . '/app/Entity/Classe.php';
+require_once dirname(__DIR__) . '/app/Entity/Inscription.php';
+require_once dirname(__DIR__) . '/app/Entity/Role.php';
+require_once dirname(__DIR__) . '/app/Entity/Utilisateur.php';
+require_once dirname(__DIR__) . '/app/Entity/Matiere.php';
+require_once dirname(__DIR__) . '/app/Entity/MatiereClasse.php';
+require_once dirname(__DIR__) . '/app/Entity/Periode.php';
+require_once dirname(__DIR__) . '/app/Entity/Evaluation.php';
+
 // Inclusion des contrôleurs
 require_once dirname(__DIR__) . '/app/controllers/AuthController.php';
 require_once dirname(__DIR__) . '/app/controllers/NoteController.php';

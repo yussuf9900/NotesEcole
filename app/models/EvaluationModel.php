@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/core/Database.php';
+require_once dirname(__DIR__) . '/Entity/Evaluation.php';
 require_once __DIR__ . '/MatiereClasseModel.php';
 
 class EvaluationModel {
@@ -12,6 +13,9 @@ class EvaluationModel {
         $this->pdo = $this->db->getConnection();
     }
 
+    /**
+     * @return Evaluation[]
+     */
     public function getElevesNotes(int $anneeId, int $classeId, int $matiereId, int $periodeId): array {
         $sql = "SELECT 
                     i.id AS inscription_id,
@@ -22,7 +26,9 @@ class EvaluationModel {
                     ev.id AS evaluation_id,
                     COALESCE(ev.devoir1, 0) AS devoir1,
                     COALESCE(ev.devoir2, 0) AS devoir2,
-                    COALESCE(ev.composition, 0) AS composition
+                    COALESCE(ev.composition, 0) AS composition,
+                    :matiere_id AS matiere_id,
+                    :periode_id AS periode_id
                 FROM eleves e
                 JOIN inscriptions i ON i.eleve_id = e.id AND i.annee_id = :annee_id AND i.classe_id = :classe_id
                 LEFT JOIN evaluations ev ON ev.inscription_id = i.id 
@@ -37,7 +43,8 @@ class EvaluationModel {
             'periode_id' => $periodeId
         ];
 
-        return $this->db->executeQuery($sql, $params);
+        $results = $this->db->executeQuery($sql, $params);
+        return array_map(fn(array $row) => Evaluation::fromArray($row), $results);
     }
 
     public function getMoyenneGeneral(
@@ -66,8 +73,8 @@ class EvaluationModel {
                 if (empty($matieres)) {
                     return 0.0;
                 }
-                $matiereIds = array_column($matieres, 'id');
-                $inClause = implode(',', array_map('intval', $matiereIds));
+                $matiereIds = array_map(fn(Matiere $m) => (int)$m->getId(), $matieres);
+                $inClause = implode(',', $matiereIds);
 
                 $sql = "SELECT ROUND(COALESCE(AVG(mm.moyenne_matiere), 0), 2) AS moyenne
                         FROM (
@@ -113,8 +120,8 @@ class EvaluationModel {
                 if (empty($matieres)) {
                     return 0.0;
                 }
-                $matiereIds = array_column($matieres, 'id');
-                $inClause = implode(',', array_map('intval', $matiereIds));
+                $matiereIds = array_map(fn(Matiere $m) => (int)$m->getId(), $matieres);
+                $inClause = implode(',', $matiereIds);
                 $nbMatieres = count($matiereIds);
 
                 $sql = "SELECT ROUND(COALESCE(AVG(moyenne_eleve), 0), 2) AS moyenne
@@ -125,8 +132,8 @@ class EvaluationModel {
                             FROM inscriptions i
                             CROSS JOIN (SELECT unnest(ARRAY[{$inClause}]) AS matiere_id) m
                             LEFT JOIN evaluations ev 
-                                   ON ev.inscription_id = i.id 
-                                  AND ev.matiere_id = m.matiere_id 
+                                   ON ev.matiere_id = m.matiere_id 
+                                  AND ev.inscription_id = i.id 
                                   AND ev.periode_id = :periode_id
                             WHERE i.annee_id = :annee_id
                               AND i.classe_id = :classe_id
@@ -145,6 +152,12 @@ class EvaluationModel {
         return (float) ($res['moyenne'] ?? 0);
     }
 
+    /**
+     * @param int $matiereId
+     * @param int $periodeId
+     * @param Evaluation[]|array $notes
+     * @return bool
+     */
     public function saveNotes(int $matiereId, int $periodeId, array $notes): bool {
         try {
             $this->db->beginTransaction();
@@ -153,11 +166,18 @@ class EvaluationModel {
             $sqlInsert = "INSERT INTO evaluations (inscription_id, matiere_id, periode_id, devoir1, devoir2, composition) VALUES (:inscription_id, :matiere_id, :periode_id, :devoir1, :devoir2, :composition)";
             $sqlUpdate = "UPDATE evaluations SET devoir1 = :devoir1, devoir2 = :devoir2, composition = :composition WHERE id = :id";
 
-            foreach ($notes as $note) {
-                $inscriptionId = (int) $note['inscription_id'];
-                $d1 = isset($note['devoir1']) && $note['devoir1'] !== '' && $note['devoir1'] !== null ? (float) $note['devoir1'] : 0.0;
-                $d2 = isset($note['devoir2']) && $note['devoir2'] !== '' && $note['devoir2'] !== null ? (float) $note['devoir2'] : 0.0;
-                $comp = isset($note['composition']) && $note['composition'] !== '' && $note['composition'] !== null ? (float) $note['composition'] : 0.0;
+            foreach ($notes as $item) {
+                if ($item instanceof Evaluation) {
+                    $inscriptionId = (int)$item->getInscriptionId();
+                    $d1 = (float)($item->getDevoir1() ?? 0.0);
+                    $d2 = (float)($item->getDevoir2() ?? 0.0);
+                    $comp = (float)($item->getComposition() ?? 0.0);
+                } else {
+                    $inscriptionId = (int)$item['inscription_id'];
+                    $d1 = isset($item['devoir1']) && $item['devoir1'] !== '' && $item['devoir1'] !== null ? (float)$item['devoir1'] : 0.0;
+                    $d2 = isset($item['devoir2']) && $item['devoir2'] !== '' && $item['devoir2'] !== null ? (float)$item['devoir2'] : 0.0;
+                    $comp = isset($item['composition']) && $item['composition'] !== '' && $item['composition'] !== null ? (float)$item['composition'] : 0.0;
+                }
 
                 $existing = $this->db->executeQuery($sqlCheck, [
                     'inscription_id' => $inscriptionId,

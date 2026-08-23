@@ -183,6 +183,11 @@
   }
   .grade-input.comp{background:var(--green-bg);border-color:#CFE7DA;}
   .grade-input:focus-visible{outline:2px solid var(--green);outline-offset:1px;}
+  .grade-input:invalid{
+    border-color: #DC2626 !important;
+    background-color: #FEF2F2 !important;
+    color: #991B1B !important;
+  }
 
   .moyenne-val{font-weight:800;font-size:16px;color:var(--green);}
 
@@ -225,18 +230,26 @@
   <div class="top-right">
     <div class="year-pill">
       <span class="dot"></span>
-      <?= htmlspecialchars($anneeActive['nom'] ?? '') ?>
+      <?= htmlspecialchars($anneeActive ? $anneeActive->getNom() : '') ?>
     </div>
     <div class="user">
       <?php 
-        $userPrenom = $currentUser['prenom'] ?? '';
-        $userNom = $currentUser['nom'] ?? '';
-        $initials = strtoupper(substr($userPrenom, 0, 1) . substr($userNom, 0, 1));
+        if ($currentUser instanceof Utilisateur) {
+            $userPrenom = $currentUser->getPrenom();
+            $userNom = $currentUser->getNom();
+            $userRole = $currentUser->getNomRole();
+            $initials = $currentUser->getInitiales();
+        } else {
+            $userPrenom = $currentUser['prenom'] ?? '';
+            $userNom = $currentUser['nom'] ?? '';
+            $userRole = $currentUser['nomrole'] ?? '';
+            $initials = strtoupper(substr($userPrenom, 0, 1) . substr($userNom, 0, 1));
+        }
       ?>
       <div class="avatar-user"><?= htmlspecialchars($initials) ?></div>
       <div class="user-meta">
-        <div class="user-name"><?= htmlspecialchars($userPrenom . ' ' . $userNom) ?></div>
-        <div class="user-role"><?= htmlspecialchars($currentUser['nomrole'] ?? '') ?></div>
+        <div class="user-name"><?= htmlspecialchars(trim($userPrenom . ' ' . $userNom)) ?></div>
+        <div class="user-role"><?= htmlspecialchars($userRole) ?></div>
       </div>
     </div>
     <a href="/logout" class="btn btn-primary" title="Déconnexion">
@@ -281,8 +294,8 @@
       <div class="select-wrap">
         <select id="classe" name="classe_id">
           <?php foreach ($classes as $c): ?>
-            <option value="<?= $c['id'] ?>" <?= $c['id'] == $selectedClasseId ? 'selected' : '' ?>>
-              <?= htmlspecialchars($c['nomclasse']) ?>
+            <option value="<?= $c->getId() ?>" <?= $c->getId() == $selectedClasseId ? 'selected' : '' ?>>
+              <?= htmlspecialchars($c->getNomClasse()) ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -295,8 +308,8 @@
       <div class="select-wrap">
         <select id="matiere" name="matiere_id">
           <?php foreach ($matieres as $m): ?>
-            <option value="<?= $m['id'] ?>" <?= $m['id'] == $selectedMatiereId ? 'selected' : '' ?>>
-              <?= htmlspecialchars($m['nommatiere']) ?>
+            <option value="<?= $m->getId() ?>" <?= $m->getId() == $selectedMatiereId ? 'selected' : '' ?>>
+              <?= htmlspecialchars($m->getNomMatiere()) ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -309,8 +322,8 @@
       <div class="select-wrap">
         <select id="periode" name="periode_id">
           <?php foreach ($periodes as $p): ?>
-            <option value="<?= $p['id'] ?>" <?= $p['id'] == $selectedPeriodeId ? 'selected' : '' ?>>
-              <?= htmlspecialchars($p['nomperiode']) ?>
+            <option value="<?= $p->getId() ?>" <?= $p->getId() == $selectedPeriodeId ? 'selected' : '' ?>>
+              <?= htmlspecialchars($p->getNomPeriode()) ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -361,14 +374,28 @@
           <?php else: ?>
             <?php foreach ($elevesNotes as $i => $item): ?>
               <?php 
-                $d1 = (float)($item['devoir1'] ?? 0);
-                $d2 = (float)($item['devoir2'] ?? 0);
-                $comp = (float)($item['composition'] ?? 0);
-                $moy = EvaluationModel::calculerMoyenneEleve($d1, $d2, $comp);
-                $app = EvaluationModel::getAppreciationNote($moy);
-                $inscId = $item['inscription_id'];
-                $fullName = trim(($item['prenom'] ?? '') . ' ' . ($item['nom'] ?? ''));
-                $initials = strtoupper(substr($item['prenom'] ?? '', 0, 1) . substr($item['nom'] ?? '', 0, 1));
+                if ($item instanceof Evaluation) {
+                    $d1 = (float)($item->getDevoir1() ?? 0);
+                    $d2 = (float)($item->getDevoir2() ?? 0);
+                    $comp = (float)($item->getComposition() ?? 0);
+                    $moy = $item->getMoyenne();
+                    $app = $item->getAppreciation();
+                    $inscId = $item->getInscriptionId();
+                    $eleve = $item->getInscription()?->getEleve();
+                    $fullName = $eleve ? $eleve->getNomComplet() : '';
+                    $matricule = $eleve ? $eleve->getMatricule() : '';
+                    $initials = $eleve ? $eleve->getInitiales() : 'EL';
+                } else {
+                    $d1 = (float)($item['devoir1'] ?? 0);
+                    $d2 = (float)($item['devoir2'] ?? 0);
+                    $comp = (float)($item['composition'] ?? 0);
+                    $moy = EvaluationModel::calculerMoyenneEleve($d1, $d2, $comp);
+                    $app = EvaluationModel::getAppreciationNote($moy);
+                    $inscId = $item['inscription_id'];
+                    $fullName = trim(($item['prenom'] ?? '') . ' ' . ($item['nom'] ?? ''));
+                    $matricule = $item['matricule'] ?? '';
+                    $initials = strtoupper(substr($item['prenom'] ?? '', 0, 1) . substr($item['nom'] ?? '', 0, 1));
+                }
               ?>
               <tr>
                 <td>
@@ -377,7 +404,7 @@
                     <div class="avatar"><?= htmlspecialchars($initials) ?></div>
                     <div>
                       <div class="eleve-name"><?= htmlspecialchars($fullName) ?></div>
-                      <div class="eleve-id"><?= htmlspecialchars($item['matricule'] ?? '') ?></div>
+                      <div class="eleve-id"><?= htmlspecialchars($matricule) ?></div>
                     </div>
                   </div>
                 </td>
@@ -415,93 +442,5 @@
 
 </div>
 
-<script>
-(function() {
-  const notesForm = document.getElementById('notesForm');
-  const classAvgEl = document.getElementById('classAvg');
-  if (!notesForm) return;
-
-  function appreciationFor(avg) {
-    if (avg >= 16) return { label: 'Très bien', cls: '' };
-    if (avg >= 14) return { label: 'Bien', cls: '' };
-    if (avg >= 12) return { label: 'Assez bien', cls: '' };
-    if (avg >= 10) return { label: 'Passable', cls: 'mid' };
-    return { label: 'Insuffisant', cls: 'low' };
-  }
-
-  function updateRow(tr) {
-    const d1Input = tr.querySelector('input[data-field="devoir1"]');
-    const d2Input = tr.querySelector('input[data-field="devoir2"]');
-    const compInput = tr.querySelector('input[data-field="composition"]');
-    const moySpan = tr.querySelector('.moyenne-val');
-    const pillSpan = tr.querySelector('.pill');
-    const appLabel = tr.querySelector('.app-label');
-
-    if (!d1Input || !d2Input || !compInput || !moySpan) return 0;
-
-    const d1 = parseFloat(d1Input.value) || 0;
-    const d2 = parseFloat(d2Input.value) || 0;
-    const comp = parseFloat(compInput.value) || 0;
-
-    const avg = (d1 + d2 + 2 * comp) / 4.0;
-    moySpan.textContent = avg.toFixed(2);
-
-    if (pillSpan && appLabel) {
-      const app = appreciationFor(avg);
-      pillSpan.classList.remove('low', 'mid');
-      if (app.cls) pillSpan.classList.add(app.cls);
-      appLabel.textContent = app.label;
-    }
-
-    return avg;
-  }
-
-  function updateClassAvg() {
-    const rows = notesForm.querySelectorAll('tbody tr');
-    if (!rows.length) return;
-    let total = 0;
-    let count = 0;
-    rows.forEach(tr => {
-      if (tr.querySelector('.moyenne-val')) {
-        const avg = updateRow(tr);
-        if (avg > 0) {
-          total += avg;
-          count++;
-        }
-      }
-    });
-    if (classAvgEl) {
-      const classAvg = count > 0 ? (total / count) : 0;
-      classAvgEl.innerHTML = classAvg.toFixed(2) + '<span>/20</span>';
-    }
-  }
-
-  notesForm.addEventListener('input', (e) => {
-    if (!e.target.classList.contains('grade-input')) return;
-    let val = parseFloat(e.target.value);
-    if (isNaN(val)) val = 0;
-    e.target.classList.toggle('invalid', e.target.value !== '' && (val < 0 || val > 20));
-    updateClassAvg();
-  });
-
-  notesForm.addEventListener('keydown', (e) => {
-    if (!e.target.classList.contains('grade-input')) return;
-    const inputs = Array.from(notesForm.querySelectorAll('.grade-input'));
-    const pos = inputs.indexOf(e.target);
-    let next = -1;
-    if (e.key === 'ArrowRight') next = pos + 1;
-    if (e.key === 'ArrowLeft') next = pos - 1;
-    if (e.key === 'ArrowDown') next = pos + 3;
-    if (e.key === 'ArrowUp') next = pos - 3;
-    if (next >= 0 && next < inputs.length) {
-      e.preventDefault();
-      inputs[next].focus();
-      inputs[next].select();
-    }
-  });
-})();
-</script>
-
 </body>
 </html>
-

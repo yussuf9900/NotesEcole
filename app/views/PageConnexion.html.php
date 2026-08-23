@@ -244,8 +244,9 @@
     background: var(--card-bg);
     transition: border-color .15s ease, background .15s ease, transform .15s ease;
     text-align:left;
+    position:relative;
   }
-  .profile-card:hover{
+  .profile-card:hover:not(:disabled){
     border-color: var(--brand-green);
     background: var(--card-bg-hover);
     transform: translateY(-1px);
@@ -253,6 +254,38 @@
   .profile-card:focus-visible{
     outline:2px solid var(--brand-green);
     outline-offset:2px;
+  }
+  .profile-card.active-directrice{
+    border-color: var(--brand-green);
+    background: #f0f7f3;
+    box-shadow: 0 4px 12px rgba(31,90,60,0.08);
+  }
+  .profile-card:disabled, .profile-card.disabled{
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #f4f6f4;
+    border-color: #e5eae6;
+    filter: grayscale(0.85);
+  }
+  .badge-status{
+    display:inline-block;
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:2px 6px;
+    border-radius:6px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .badge-status.active{
+    background: var(--mint);
+    color: var(--dark-green);
+  }
+  .badge-status.disabled{
+    background: #e2e6e3;
+    color: #717d75;
   }
 
   .avatar{
@@ -497,89 +530,65 @@
     <?php endif; ?>
 
     <div class="profile-grid">
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="admin@gmail.com">
-        <input type="hidden" name="password" value="demo1234">
-        <button class="profile-card" type="submit">
-          <div class="avatar c1">AN</div>
-          <div>
-            <div class="profile-role">Platform Admin</div>
-            <div class="profile-sub">Pilotage de DiangÉcole</div>
-          </div>
-        </button>
-      </form>
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c1">AN</div>
+        <div>
+          <div class="profile-role">Platform Admin <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Pilotage de DiangÉcole</div>
+        </div>
+      </button>
+
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c2">MB</div>
+        <div>
+          <div class="profile-role">Group Admin <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Groupe Scolaire Al Amal</div>
+        </div>
+      </button>
 
       <form action="/login" method="POST" style="display:contents;">
         <input type="hidden" name="email" value="fatouSall@gmail.com">
         <input type="hidden" name="password" value="password">
-        <button class="profile-card" type="submit">
-          <div class="avatar c2">MB</div>
-          <div>
-            <div class="profile-role">Group Admin</div>
-            <div class="profile-sub">Groupe Scolaire Al Amal</div>
-          </div>
-        </button>
-      </form>
-
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="fatouSall@gmail.com">
-        <input type="hidden" name="password" value="password">
-        <button class="profile-card" type="submit">
+        <button class="profile-card active-directrice" type="submit" title="Se connecter en tant que Directrice">
           <div class="avatar c3">FS</div>
           <div>
-            <div class="profile-role">Direction</div>
+            <div class="profile-role">Direction <span class="badge-status active">Directrice</span></div>
             <div class="profile-sub">CEM Al Amal</div>
           </div>
         </button>
       </form>
 
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="ibrahima@gmail.com">
-        <input type="hidden" name="password" value="demo1234">
-        <button class="profile-card" type="submit">
-          <div class="avatar c4">ID</div>
-          <div>
-            <div class="profile-role">Enseignant</div>
-            <div class="profile-sub">Mathématiques · CEM Al Amal</div>
-          </div>
-        </button>
-      </form>
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c4">ID</div>
+        <div>
+          <div class="profile-role">Enseignant <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Mathématiques · CEM Al Amal</div>
+        </div>
+      </button>
 
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="admin@gmail.com">
-        <input type="hidden" name="password" value="demo1234">
-        <button class="profile-card" type="submit">
-          <div class="avatar c5">MF</div>
-          <div>
-            <div class="profile-role">Comptable</div>
-            <div class="profile-sub">Finance du groupe Al Amal</div>
-          </div>
-        </button>
-      </form>
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c5">MF</div>
+        <div>
+          <div class="profile-role">Comptable <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Finance du groupe Al Amal</div>
+        </div>
+      </button>
 
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="surveillant@gmail.com">
-        <input type="hidden" name="password" value="demo1234">
-        <button class="profile-card" type="submit">
-          <div class="avatar c6">OS</div>
-          <div>
-            <div class="profile-role">Vie scolaire</div>
-            <div class="profile-sub">Assiduité · CEM Al Amal</div>
-          </div>
-        </button>
-      </form>
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c6">OS</div>
+        <div>
+          <div class="profile-role">Vie scolaire <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Assiduité · CEM Al Amal</div>
+        </div>
+      </button>
 
-      <form action="/login" method="POST" style="display:contents;">
-        <input type="hidden" name="email" value="fatouSall@gmail.com">
-        <input type="hidden" name="password" value="password">
-        <button class="profile-card" type="submit">
-          <div class="avatar c7">MF</div>
-          <div>
-            <div class="profile-role">Parent</div>
-            <div class="profile-sub">Awa &amp; Moussa Fall</div>
-          </div>
-        </button>
-      </form>
+      <button class="profile-card disabled" type="button" disabled aria-disabled="true" title="Profil désactivé">
+        <div class="avatar c7">MF</div>
+        <div>
+          <div class="profile-role">Parent <span class="badge-status disabled">Désactivé</span></div>
+          <div class="profile-sub">Awa &amp; Moussa Fall</div>
+        </div>
+      </button>
     </div>
 
     <div class="divider">ou avec vos identifiants</div>
@@ -619,7 +628,7 @@
       </button>
     </form>
 
-    <p class="demo-note"><span class="check">✓</span>Tous les comptes utilisent le mot de passe <strong>demo1234</strong> ou <strong>password</strong></p>
+    <p class="demo-note"><span class="check">✓</span>Seul le profil de la <strong>Directrice</strong> (Direction) est activé pour la connexion.</p>
 
   </section>
 

@@ -334,6 +334,91 @@
         </tr>
       </thead>
       <tbody id="tbody">
+        <tr>
+          <td>
+            <div class="eleve-cell">
+              <div class="idx" style="display:inline-block;width:18px;">1</div>
+              <div class="avatar">MF</div>
+              <div>
+                <div class="eleve-name">Moussa Fall</div>
+                <div class="eleve-id">JE-26002</div>
+              </div>
+            </div>
+          </td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="15"></td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="14"></td>
+          <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="16"></td>
+          <td><span class="moyenne-val">15.25</span></td>
+          <td><span class="pill"><span class="pdot"></span><span class="app-label">Bien</span></span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="eleve-cell">
+              <div class="idx" style="display:inline-block;width:18px;">2</div>
+              <div class="avatar">FN</div>
+              <div>
+                <div class="eleve-name">Fatou Ndiaye</div>
+                <div class="eleve-id">JE-26003</div>
+              </div>
+            </div>
+          </td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="12"></td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="13"></td>
+          <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="12"></td>
+          <td><span class="moyenne-val">12.25</span></td>
+          <td><span class="pill"><span class="pdot"></span><span class="app-label">Assez bien</span></span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="eleve-cell">
+              <div class="idx" style="display:inline-block;width:18px;">3</div>
+              <div class="avatar">ID</div>
+              <div>
+                <div class="eleve-name">Ibrahima Diallo</div>
+                <div class="eleve-id">JE-26004</div>
+              </div>
+            </div>
+          </td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="17"></td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="16"></td>
+          <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="18"></td>
+          <td><span class="moyenne-val">17.25</span></td>
+          <td><span class="pill"><span class="pdot"></span><span class="app-label">Très bien</span></span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="eleve-cell">
+              <div class="idx" style="display:inline-block;width:18px;">4</div>
+              <div class="avatar">KS</div>
+              <div>
+                <div class="eleve-name">Khadija Sow</div>
+                <div class="eleve-id">JE-26005</div>
+              </div>
+            </div>
+          </td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="10"></td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="11"></td>
+          <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="12"></td>
+          <td><span class="moyenne-val">11.25</span></td>
+          <td><span class="pill mid"><span class="pdot"></span><span class="app-label">Passable</span></span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="eleve-cell">
+              <div class="idx" style="display:inline-block;width:18px;">5</div>
+              <div class="avatar">OF</div>
+              <div>
+                <div class="eleve-name">Ousmane Faye</div>
+                <div class="eleve-id">JE-26006</div>
+              </div>
+            </div>
+          </td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="14"></td>
+          <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="15"></td>
+          <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="15"></td>
+          <td><span class="moyenne-val">14.75</span></td>
+          <td><span class="pill"><span class="pdot"></span><span class="app-label">Bien</span></span></td>
+        </tr>
       </tbody>
       <tfoot>
         <tr><td colspan="6">Navigation clavier disponible · valeurs limitées de 0 à 20</td></tr>
@@ -342,166 +427,6 @@
   </div>
 
 </div>
-
-<div class="toast" id="toast">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-  <span id="toastText">Enregistré</span>
-</div>
-
-<script>
-(function(){
-  const students = [
-    { id: "JE-26002", name: "Moussa Fall",   d1: 15, d2: 14, comp: 16 },
-    { id: "JE-26003", name: "Fatou Ndiaye",  d1: 12, d2: 13, comp: 12 },
-    { id: "JE-26004", name: "Ibrahima Diallo", d1: 17, d2: 16, comp: 18 },
-    { id: "JE-26005", name: "Khadija Sow",   d1: 10, d2: 11, comp: 12 },
-    { id: "JE-26006", name: "Ousmane Faye",  d1: 14, d2: 15, comp: 15 },
-  ];
-
-  const tbody = document.getElementById('tbody');
-  const classAvgEl = document.getElementById('classAvg');
-  const filtersCard = document.getElementById('filtersCard');
-  const validateBtn = document.getElementById('validateBtn');
-  const toast = document.getElementById('toast');
-  const toastText = document.getElementById('toastText');
-
-  function initials(name){
-    return name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
-  }
-
-  function appreciationFor(avg){
-    if (avg >= 16) return { label: 'Très bien', cls: '' };
-    if (avg >= 14) return { label: 'Bien', cls: '' };
-    if (avg >= 12) return { label: 'Assez bien', cls: '' };
-    if (avg >= 10) return { label: 'Passable', cls: 'mid' };
-    return { label: 'Insuffisant', cls: 'low' };
-  }
-
-  function computeAvg(d1, d2, comp){
-    const vals = [d1, d2, comp].filter(v => !isNaN(v));
-    if (!vals.length) return 0;
-    return vals.reduce((a,b) => a+b, 0) / vals.length;
-  }
-
-  function render(){
-    tbody.innerHTML = '';
-    students.forEach((s, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="eleve-cell">
-            <div class="idx" style="display:inline-block;width:18px;">${i+1}</div>
-            <div class="avatar">${initials(s.name)}</div>
-            <div>
-              <div class="eleve-name">${s.name}</div>
-              <div class="eleve-id">${s.id}</div>
-            </div>
-          </div>
-        </td>
-        <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="${s.d1}" data-field="d1" data-idx="${i}"></td>
-        <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="${s.d2}" data-field="d2" data-idx="${i}"></td>
-        <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="${s.comp}" data-field="comp" data-idx="${i}"></td>
-        <td><span class="moyenne-val" data-moy="${i}"></span></td>
-        <td><span class="pill" data-app="${i}"><span class="pdot"></span><span class="app-label"></span></span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-    updateAll();
-  }
-
-  function updateAll(){
-    let total = 0;
-    students.forEach((s, i) => {
-      const avg = computeAvg(s.d1, s.d2, s.comp);
-      const moyEl = tbody.querySelector(`[data-moy="${i}"]`);
-      moyEl.textContent = avg.toFixed(2);
-      const app = appreciationFor(avg);
-      const pill = tbody.querySelector(`[data-app="${i}"]`);
-      pill.classList.remove('low','mid');
-      if (app.cls) pill.classList.add(app.cls);
-      pill.querySelector('.app-label').textContent = app.label;
-      total += avg;
-    });
-    const classAvg = total / students.length;
-    classAvgEl.innerHTML = classAvg.toFixed(2) + '<span>/20</span>';
-  }
-
-  tbody.addEventListener('input', (e) => {
-    const t = e.target;
-    if (!t.classList.contains('grade-input')) return;
-    const idx = Number(t.dataset.idx);
-    const field = t.dataset.field;
-    let val = parseFloat(t.value);
-    if (isNaN(val)) val = 0;
-    if (val < 0) val = 0;
-    if (val > 20) val = 20;
-    t.classList.toggle('invalid', t.value !== '' && (parseFloat(t.value) < 0 || parseFloat(t.value) > 20));
-    students[idx][field] = val;
-    updateAll();
-  });
-
-  tbody.addEventListener('keydown', (e) => {
-    if (!e.target.classList.contains('grade-input')) return;
-    const inputs = Array.from(tbody.querySelectorAll('.grade-input'));
-    const pos = inputs.indexOf(e.target);
-    let next = -1;
-    if (e.key === 'ArrowRight') next = pos + 1;
-    if (e.key === 'ArrowLeft') next = pos - 1;
-    if (e.key === 'ArrowDown') next = pos + 3;
-    if (e.key === 'ArrowUp') next = pos - 3;
-    if (next >= 0 && next < inputs.length){
-      e.preventDefault();
-      inputs[next].focus();
-      inputs[next].select();
-    }
-  });
-
-  function showToast(text){
-    toastText.textContent = text;
-    toast.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove('show'), 2400);
-  }
-
-  validateBtn.addEventListener('click', () => {
-    const classe = document.getElementById('classe').value;
-    const matiere = document.getElementById('matiere').value;
-    const periode = document.getElementById('periode').value;
-
-    filtersCard.classList.add('flash');
-    setTimeout(() => filtersCard.classList.remove('flash'), 600);
-
-    validateBtn.classList.add('is-valid');
-    validateBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Sélection validée`;
-    setTimeout(() => {
-      validateBtn.classList.remove('is-valid');
-      validateBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Valider`;
-    }, 1800);
-
-    showToast(`Sélection validée · ${classe} · ${matiere} · ${periode}`);
-  });
-
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    showToast('Notes enregistrées · moyennes recalculées');
-  });
-
-  document.getElementById('importBtn').addEventListener('click', () => {
-    showToast('Import de notes — sélectionnez un fichier CSV');
-  });
-
-  ['classe','matiere','periode'].forEach(id => {
-    document.getElementById(id).addEventListener('change', () => {
-      validateBtn.classList.remove('is-valid');
-    });
-  });
-
-  render();
-})();
-</script>
 
 </body>
 </html>
